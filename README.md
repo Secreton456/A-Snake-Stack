@@ -42,7 +42,7 @@ request will be a POST to `/save_score` with a JSON body, for example:
   |**Enchanted Golden Apple** | 4 |Gives invincibility for 10 seconds|
 
 - **Obstacles**:
-  - **Bedrock**: Random grids inside the arena behave as a wall i.e. if the player makes contact with these grids when not invincible the game ends.
+  - **Lava**: Random grids inside the arena behave as lava i.e. if the player makes contact with these grids when not invincible the game ends.
   - **Magma block**: Whenever a player passes through a grid containing this block, health reduces by a single unit every 3 frames of the game for 5 seconds.
   - **Soul Sand**: Slows down the player to 0.8 times the default speed.
   - **Blue Ice**: Speeds up the player to 1.25 times the default speed.
