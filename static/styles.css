@@ -1,0 +1,35 @@
+body {
+  margin: 0;
+}
+
+#Canvas_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#Canvas {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #e811f5;
+}
+
+body {
+  background-color: #140714;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+html {
+  background-color: #140714;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
