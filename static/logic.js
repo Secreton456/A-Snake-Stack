@@ -7,6 +7,7 @@ const CANVAS_HEIGHT = 800;
 
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
+
 function UpdateCanvas() {
   ctx.fillStyle = "#8F3C9E";
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -45,6 +46,8 @@ function UpdateSnakeHead() {
 
 cur_dir = 1;
 
+Running = false;
+
 document.addEventListener("keydown", (event) => {
   if (event.key == "ArrowUp" || event.key == "w" || event.key == "W")
     cur_dir = 1;
@@ -54,6 +57,8 @@ document.addEventListener("keydown", (event) => {
     cur_dir = 3;
   else if (event.key == "ArrowLeft" || event.key == "a" || event.key == "A")
     cur_dir = 4;
+  else if (event.key == "Enter") Running = true;
+  else if (event.key == "Backspace") Running = false;
 });
 
 function SnakeMovement() {
@@ -64,8 +69,10 @@ function SnakeMovement() {
 }
 
 function gameLoop() {
-  UpdateCanvas();
-  UpdateSnakeHead();
-  SnakeMovement();
+  if (Running) {
+    UpdateCanvas();
+    UpdateSnakeHead();
+    SnakeMovement();
+  }
 }
 setInterval(gameLoop, 100);
