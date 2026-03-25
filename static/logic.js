@@ -5,6 +5,8 @@ const GRID_WIDTH = 32;
 const CANVAS_WIDTH = 1280;
 const CANVAS_HEIGHT = 800;
 
+const e = 2.718;
+
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
 
@@ -13,8 +15,8 @@ function UpdateCanvas() {
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 }
 // Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
-snake_row = Math.floor((Math.random() * CANVAS_WIDTH) / GRID_WIDTH);
-snake_column = Math.floor((Math.random() * CANVAS_HEIGHT) / GRID_WIDTH);
+let snake_row = Math.floor((Math.random() * CANVAS_WIDTH) / GRID_WIDTH);
+let snake_column = Math.floor((Math.random() * CANVAS_HEIGHT) / GRID_WIDTH);
 
 function UpdateSnakeHead() {
   ctx.fillStyle = "#571F57";
@@ -30,7 +32,7 @@ function UpdateSnakeHead() {
     ctx.beginPath();
     ctx.moveTo(i * GRID_WIDTH, 0);
     ctx.lineTo(i * GRID_WIDTH, CANVAS_HEIGHT);
-    ctx.strokestyle = "#140714";
+    ctx.strokeStyle = "#140714";
     ctx.stroke();
   }
 
@@ -39,14 +41,47 @@ function UpdateSnakeHead() {
     ctx.beginPath();
     ctx.moveTo(0, i * GRID_WIDTH);
     ctx.lineTo(CANVAS_WIDTH, i * GRID_WIDTH);
-    ctx.strokestyle = "#140714";
+    ctx.strokeStyle = "#140714";
     ctx.stroke();
   }
 }
 
-cur_dir = 1;
+let cur_dir = 1;
 
 Running = false;
+
+// Addition of one food till now
+let Food_cells = [];
+function FoodSpawns() {
+  // The probability of food spawning set to be inversely proportional to the exponent of the present number of food slots.
+  for (let i = 1; i <= CANVAS_WIDTH / GRID_WIDTH; i++)
+    for (let j = 1; j <= CANVAS_HEIGHT / GRID_WIDTH; j++)
+      if (Math.random() < 0.5 / e ** (Food_cells.length ** 1))
+        Food_cells[Food_cells.length] = { x: i, y: j };
+
+  Food_cells.sort((a, b) => a.x - b.x);
+
+  for (const food of Food_cells) {
+    ctx.fillStyle = "red";
+    ctx.fillRect(
+      food.x * GRID_WIDTH,
+      food.y * GRID_WIDTH,
+      GRID_WIDTH,
+      GRID_WIDTH,
+    );
+  }
+}
+
+function EatFood() {
+  for (let food of Food_cells) {
+    if (snake_row == food.x && snake_column == food.y) {
+      let index = Food_cells.findIndex(
+        (obj) => obj.x == food.x && obj.y == food.y,
+      );
+      Food_cells.splice(index, 1);
+    }
+  }
+}
 
 document.addEventListener("keydown", (event) => {
   if (event.key == "ArrowUp" || event.key == "w" || event.key == "W")
@@ -71,8 +106,10 @@ function SnakeMovement() {
 function gameLoop() {
   if (Running) {
     UpdateCanvas();
-    UpdateSnakeHead();
+    FoodSpawns();
     SnakeMovement();
+    UpdateSnakeHead();
+    EatFood();
   }
 }
-setInterval(gameLoop, 100);
+setInterval(gameLoop, 200);
