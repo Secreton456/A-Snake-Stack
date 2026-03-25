@@ -5,12 +5,14 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: 50px;
 }
 
 #Canvas {
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: auto;
 }
 
 #header {
@@ -26,6 +28,7 @@ body {
   padding: 0;
   height: 100%;
 }
+
 html {
   background-color: #140714;
   margin: 0;
