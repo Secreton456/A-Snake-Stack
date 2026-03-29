@@ -7,6 +7,17 @@ const CANVAS_HEIGHT = 800;
 const e = 2.718;
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
+// FOOD_TYPE: [HEALTH, IMMUNITY, RELATIVE PROBABILITY, IMAGE SOURCE]
+const FOOD = new Map([
+  ["APPLE", [1, 0, 0.4, "../assets/apple.png"]],
+  ["CARROT", [1, 0, 0.3, "../assets/carrot.png"]],
+  ["PUMPKIN_PIE", [4, 0, 0.18, "../assets/pumpkin_pie.png"]],
+  ["GOLDEN_CARROT", [5, 5, 0.09, "../assets/golden_carrot.png"]],
+  ["GOLDEN_APPLE", [5, 7, 0.029, "../assets/golden_apple.png"]],
+  ["ENCHANTED_APPLE", [10, 10, 0.001, "../assets/ENCHANTED_APPLE_TMP.png"]],
+]);
+
+const IMAGES = new Map();
 // =====================================================================
 
 let Running = false;
@@ -70,16 +81,18 @@ function FoodSpawns() {
   // The probability of food spawning set to be inversely proportional to the exponent of the present number of food slots.
   for (let i = 1; i <= CANVAS_WIDTH / GRID_WIDTH; i++)
     for (let j = 1; j <= CANVAS_HEIGHT / GRID_WIDTH; j++)
-      if (Math.random() < 0.5 / e ** (Food_cells.length ** 1))
-        Food_cells[Food_cells.length] = { x: i, y: j };
+      for (let [food, value] of FOOD) {
+        if (Math.random() < (0.5 * value[2]) / e ** (Food_cells.length ** 1))
+          Food_cells[Food_cells.length] = { x: i, y: j, type: food };
+      }
 
   // sorting the Food_cells
   Food_cells.sort((a, b) => a.x - b.x);
 
   // Drawing the Food cells
   for (const food of Food_cells) {
-    ctx.fillStyle = "red";
-    ctx.fillRect(
+    ctx.drawImage(
+      IMAGES.get(food.type),
       food.x * GRID_WIDTH,
       food.y * GRID_WIDTH,
       GRID_WIDTH,
@@ -96,7 +109,7 @@ function EatFood() {
         (obj) => obj.x == food.x && obj.y == food.y,
       );
       Food_cells.splice(index, 1); // Removes the first instance of the snake head in the array
-      snakeHealth++;
+      snakeHealth += FOOD.get(food.type)[0];
       snakeLength++;
       found = true;
     }
@@ -107,6 +120,16 @@ function EatFood() {
 function UpdateScoreBoard() {
   ScoreCard = document.getElementById("ScoreBoard");
   ScoreCard.innerHTML = "<text>Score:" + snakeHealth + "</text>"; // Display SnakeHealth
+}
+
+function LoadImages() {
+  for (let [food, value] of FOOD) {
+    let img = new Image();
+    img.src = value[3];
+    img.onload = () => {
+      IMAGES.set(food, img);
+    };
+  }
 }
 
 document.addEventListener("keydown", (event) => {
@@ -151,4 +174,5 @@ function gameLoop() {
     UpdateScoreBoard();
   }
 }
+LoadImages();
 setInterval(gameLoop, 100);
