@@ -1,4 +1,4 @@
-// Game Constants
+// ========================== Game Constants ==========================
 const canvas = document.getElementById("Canvas");
 const ctx = canvas.getContext("2d");
 const GRID_WIDTH = 32;
@@ -7,20 +7,23 @@ const CANVAS_HEIGHT = 800;
 const e = 2.718;
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
+// =====================================================================
 
 let Running = false;
 
-//<----- Game Variables----->
+// ========================== Game Variables ==========================
 let curDir = 1;
 let snakeLength = 1;
 let snakeHealth = 1;
-let inStateOfEating = false;
+let inStateOfEating = false; // True when the snake head coincides with a food item
+
 // Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
 let snake_row = Math.floor((Math.random() * CANVAS_WIDTH) / GRID_WIDTH);
 let snake_column = Math.floor((Math.random() * CANVAS_HEIGHT) / GRID_WIDTH);
-let Food_cells = [];
-let Snake_cells = [{ x: snake_row, y: snake_column }];
-//<-------------------------->
+
+let Food_cells = []; // [ { x:row, y:column },... ]
+let Snake_cells = [{ x: snake_row, y: snake_column }]; // [ { x:row, y:column },... ]
+// =====================================================================
 
 // Updates the Canvas Including the grid and the background
 function UpdateCanvas() {
@@ -48,8 +51,9 @@ function UpdateCanvas() {
 
 // Changes the Snake_cells array based on the movement and eating of food
 function UpdateSnake() {
-  if (!inStateOfEating) Snake_cells.pop();
-  Snake_cells.unshift({ x: snake_row, y: snake_column });
+  if (!inStateOfEating) Snake_cells.pop(); // removes the last cell if not eating food
+  Snake_cells.unshift({ x: snake_row, y: snake_column }); // adds the current snake head at the front to the list
+  // Draws all the snake cells
   ctx.fillStyle = "#571F57";
   for (snakeCell of Snake_cells) {
     ctx.fillRect(
@@ -61,7 +65,7 @@ function UpdateSnake() {
   }
 }
 
-// Addition of one food till now
+// Spawning Food Logic
 function FoodSpawns() {
   // The probability of food spawning set to be inversely proportional to the exponent of the present number of food slots.
   for (let i = 1; i <= CANVAS_WIDTH / GRID_WIDTH; i++)
@@ -69,8 +73,10 @@ function FoodSpawns() {
       if (Math.random() < 0.5 / e ** (Food_cells.length ** 1))
         Food_cells[Food_cells.length] = { x: i, y: j };
 
+  // sorting the Food_cells
   Food_cells.sort((a, b) => a.x - b.x);
 
+  // Drawing the Food cells
   for (const food of Food_cells) {
     ctx.fillStyle = "red";
     ctx.fillRect(
@@ -83,24 +89,24 @@ function FoodSpawns() {
 }
 
 function EatFood() {
-  let found = false;
+  let found = false; // temporary variable to update inStateofEating
   for (let food of Food_cells) {
     if (snake_row == food.x && snake_column == food.y) {
       let index = Food_cells.findIndex(
         (obj) => obj.x == food.x && obj.y == food.y,
       );
-      Food_cells.splice(index, 1);
+      Food_cells.splice(index, 1); // Removes the first instance of the snake head in the array
       snakeHealth++;
       snakeLength++;
       found = true;
     }
   }
-  inStateOfEating = found;
+  inStateOfEating = found; // update inStateOfEating
 }
 
 function UpdateScoreBoard() {
   ScoreCard = document.getElementById("ScoreBoard");
-  ScoreCard.innerHTML = "<text>Score:" + snakeHealth + "</text>";
+  ScoreCard.innerHTML = "<text>Score:" + snakeHealth + "</text>"; // Display SnakeHealth
 }
 
 document.addEventListener("keydown", (event) => {
