@@ -16,10 +16,13 @@ const FOOD = new Map([
   ["GOLDEN_APPLE", [5, 7, 0.029, "../assets/golden_apple.png"]],
   ["ENCHANTED_APPLE", [10, 10, 0.001, "../assets/ENCHANTED_APPLE_TMP.png"]],
 ]);
+const SnakeBodyImg = new Image();
+SnakeBodyImg.src = "../assets/SnakeBody.png";
+const SnakeHeadImg = new Image();
+SnakeHeadImg.src = "../assets/SnakeHead.png";
 // All the IMAGES from assets folder load and get stored here
 const IMAGES = new Map();
 // =====================================================================
-
 let Running = false;
 
 // ========================== Game Variables ==========================
@@ -38,7 +41,7 @@ let Snake_cells = [{ x: snake_row, y: snake_column }]; // [ { x:row, y:column },
 
 // Updates the Canvas Including the grid and the background
 function UpdateCanvas() {
-  ctx.fillStyle = "#8F3C9E";
+  ctx.fillStyle = "#7fbf4d";
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   // Drawing the vertical lines
@@ -46,7 +49,7 @@ function UpdateCanvas() {
     ctx.beginPath();
     ctx.moveTo(i * GRID_WIDTH, 0);
     ctx.lineTo(i * GRID_WIDTH, CANVAS_HEIGHT);
-    ctx.strokeStyle = "#140714";
+    ctx.strokeStyle = "#5a3e2b";
     ctx.stroke();
   }
 
@@ -55,7 +58,7 @@ function UpdateCanvas() {
     ctx.beginPath();
     ctx.moveTo(0, i * GRID_WIDTH);
     ctx.lineTo(CANVAS_WIDTH, i * GRID_WIDTH);
-    ctx.strokeStyle = "#140714";
+    ctx.strokeStyle = "#5a3e2b";
     ctx.stroke();
   }
 }
@@ -65,15 +68,16 @@ function UpdateSnake() {
   if (!inStateOfEating) Snake_cells.pop(); // removes the last cell if not eating food
   Snake_cells.unshift({ x: snake_row, y: snake_column }); // adds the current snake head at the front to the list
   // Draws all the snake cells
-  ctx.fillStyle = "#571F57";
-  for (snakeCell of Snake_cells) {
-    ctx.fillRect(
-      snakeCell.x * GRID_WIDTH,
-      snakeCell.y * GRID_WIDTH,
-      GRID_WIDTH,
-      GRID_WIDTH,
-    );
-  }
+  Snake_cells.forEach((snakeCell,index) => {
+    if (index === 0) {
+      //head
+      ctx.drawImage(SnakeHeadImg,snakeCell.x*GRID_WIDTH,snakeCell.y*GRID_WIDTH,GRID_WIDTH,GRID_WIDTH);
+    }
+    else {
+      //body
+      ctx.drawImage(SnakeBodyImg,snakeCell.x*GRID_WIDTH,snakeCell.y*GRID_WIDTH,GRID_WIDTH,GRID_WIDTH);
+    }
+  });
 }
 
 // Spawning Food Logic
@@ -122,7 +126,7 @@ function EatFood() {
 
 function UpdateScoreBoard() {
   ScoreCard = document.getElementById("ScoreBoard");
-  ScoreCard.innerHTML = "<text>Score:" + snakeHealth + "</text>"; // Display SnakeHealth
+  ScoreCard.innerHTML = "<text class='header' style='color: red;'>Score:" + snakeHealth + "</text>"; // Display SnakeHealth
 }
 
 function LoadImages() {
@@ -133,6 +137,8 @@ function LoadImages() {
       IMAGES.set(food, img);
     };
   }
+  SnakeHeadImg.onload = () => {IMAGES.set("SnakeHeadImg",SnakeHeadImg);};
+  SnakeBodyImg.onload = () => {IMAGES.set("SnakeBodyImg",SnakeBodyImg);};
 }
 
 document.addEventListener("keydown", (event) => {
@@ -156,8 +162,14 @@ document.addEventListener("keydown", (event) => {
     curDir != 3
   )
     curDir = 4;
-  else if (event.key == "Enter") Running = true;
-  else if (event.key == "Backspace") Running = false;
+  else if (event.key == "Enter"){
+    document.getElementById("overlay").style.setProperty("display","none"); 
+    Running = true;
+  }
+  else if (event.key == "Backspace"){
+    document.getElementById("overlay").style.setProperty("display","flex"); 
+    Running = false;
+  }
 });
 
 function SnakeMovement() {
