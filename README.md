@@ -77,6 +77,28 @@ The Frontend of the game's logic is managed by Javascript.
 
 All the images required for the game are stored in the `assets/` folder.
 
+### Foodtypes
+
+A map named `FOOD` is stored mapping Food name to a list
+
+```javascript
+FOOD = new Map(){
+  ["FOOD_NAME": [HEALTH, IMMUNITY, RELATIVE_PROBABILTY, IMAGE_SOURCE]]
+}
+```
+
+**Health**: The score/health change a player experiences when the snake eats the respective food item.
+
+**Immunity**: Time in seconds the player becomes invincible after eating the respective food item.
+
+**Relative_Probability**: Each food type is spawned with a probability proportional to $e^{-N}$ where $N$ is the total number of food items currently present in the canvas. So, the probability for a specific food item to spawn is
+
+$$
+P = k\times p\times e^{-N}
+$$
+
+where $k$ is a fixed constant. This constant is chosen to the desired value.
+
 # Installation
 
 To be able to run this project on your local machine, you must run the following commands on your terminal.

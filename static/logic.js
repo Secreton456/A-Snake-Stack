@@ -16,7 +16,7 @@ const FOOD = new Map([
   ["GOLDEN_APPLE", [5, 7, 0.029, "../assets/golden_apple.png"]],
   ["ENCHANTED_APPLE", [10, 10, 0.001, "../assets/ENCHANTED_APPLE_TMP.png"]],
 ]);
-
+// All the IMAGES from assets folder load and get stored here
 const IMAGES = new Map();
 // =====================================================================
 
@@ -32,7 +32,7 @@ let inStateOfEating = false; // True when the snake head coincides with a food i
 let snake_row = Math.floor((Math.random() * CANVAS_WIDTH) / GRID_WIDTH);
 let snake_column = Math.floor((Math.random() * CANVAS_HEIGHT) / GRID_WIDTH);
 
-let Food_cells = []; // [ { x:row, y:column },... ]
+let Food_cells = []; // [ { x:row, y:column,type: "FOOD_NAME" },... ]
 let Snake_cells = [{ x: snake_row, y: snake_column }]; // [ { x:row, y:column },... ]
 // =====================================================================
 
@@ -82,7 +82,10 @@ function FoodSpawns() {
   for (let i = 1; i <= CANVAS_WIDTH / GRID_WIDTH; i++)
     for (let j = 1; j <= CANVAS_HEIGHT / GRID_WIDTH; j++)
       for (let [food, value] of FOOD) {
-        if (Math.random() < (0.5 * value[2]) / e ** (Food_cells.length ** 1))
+        if (
+          Math.random() <
+          (0.5 * value[2]) / (e ** (Food_cells.length ** 1) * 6)
+        )
           Food_cells[Food_cells.length] = { x: i, y: j, type: food };
       }
 
