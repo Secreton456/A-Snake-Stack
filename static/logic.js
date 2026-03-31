@@ -14,12 +14,8 @@ const FOOD = new Map([
   ["PUMPKIN_PIE", [4, 0, 0.18, "../assets/pumpkin_pie.png"]],
   ["GOLDEN_CARROT", [5, 5, 0.09, "../assets/golden_carrot.png"]],
   ["GOLDEN_APPLE", [5, 7, 0.029, "../assets/golden_apple.png"]],
-  ["ENCHANTED_APPLE", [10, 10, 0.001, "../assets/ENCHANTED_APPLE_TMP.png"]],
+  ["ENCHANTED_APPLE", [10, 10, 0.401, "../assets/enchanted_apple.png"]],
 ]);
-const SnakeBodyImg = new Image();
-SnakeBodyImg.src = "../assets/SnakeBody.png";
-const SnakeHeadImg = new Image();
-SnakeHeadImg.src = "../assets/SnakeHead.png";
 // All the IMAGES from assets folder load and get stored here
 const IMAGES = new Map();
 // =====================================================================
@@ -68,14 +64,25 @@ function UpdateSnake() {
   if (!inStateOfEating) Snake_cells.pop(); // removes the last cell if not eating food
   Snake_cells.unshift({ x: snake_row, y: snake_column }); // adds the current snake head at the front to the list
   // Draws all the snake cells
-  Snake_cells.forEach((snakeCell,index) => {
+  Snake_cells.forEach((snakeCell, index) => {
     if (index === 0) {
       //head
-      ctx.drawImage(SnakeHeadImg,snakeCell.x*GRID_WIDTH,snakeCell.y*GRID_WIDTH,GRID_WIDTH,GRID_WIDTH);
-    }
-    else {
+      ctx.drawImage(
+        IMAGES.get("SNAKE_HEAD"),
+        snakeCell.x * GRID_WIDTH,
+        snakeCell.y * GRID_WIDTH,
+        GRID_WIDTH,
+        GRID_WIDTH,
+      );
+    } else {
       //body
-      ctx.drawImage(SnakeBodyImg,snakeCell.x*GRID_WIDTH,snakeCell.y*GRID_WIDTH,GRID_WIDTH,GRID_WIDTH);
+      ctx.drawImage(
+        IMAGES.get("SNAKE_BODY"),
+        snakeCell.x * GRID_WIDTH,
+        snakeCell.y * GRID_WIDTH,
+        GRID_WIDTH,
+        GRID_WIDTH,
+      );
     }
   });
 }
@@ -126,7 +133,8 @@ function EatFood() {
 
 function UpdateScoreBoard() {
   ScoreCard = document.getElementById("ScoreBoard");
-  ScoreCard.innerHTML = "<text class='header' style='color: red;'>Score:" + snakeHealth + "</text>"; // Display SnakeHealth
+  ScoreCard.innerHTML =
+    "<text class='header' style='color: red;'>Score:" + snakeHealth + "</text>"; // Display SnakeHealth
 }
 
 function LoadImages() {
@@ -137,8 +145,17 @@ function LoadImages() {
       IMAGES.set(food, img);
     };
   }
-  SnakeHeadImg.onload = () => {IMAGES.set("SnakeHeadImg",SnakeHeadImg);};
-  SnakeBodyImg.onload = () => {IMAGES.set("SnakeBodyImg",SnakeBodyImg);};
+
+  let SnakeBodyImg = new Image();
+  SnakeBodyImg.src = "../assets/SnakeBody.png";
+  let SnakeHeadImg = new Image();
+  SnakeHeadImg.src = "../assets/SnakeHead.png";
+  SnakeHeadImg.onload = () => {
+    IMAGES.set("SNAKE_HEAD", SnakeHeadImg);
+  };
+  SnakeBodyImg.onload = () => {
+    IMAGES.set("SNAKE_BODY", SnakeBodyImg);
+  };
 }
 
 document.addEventListener("keydown", (event) => {
@@ -162,12 +179,11 @@ document.addEventListener("keydown", (event) => {
     curDir != 3
   )
     curDir = 4;
-  else if (event.key == "Enter"){
-    document.getElementById("overlay").style.setProperty("display","none"); 
+  else if (event.key == "Enter") {
+    document.getElementById("overlay").style.setProperty("display", "none");
     Running = true;
-  }
-  else if (event.key == "Backspace"){
-    document.getElementById("overlay").style.setProperty("display","flex"); 
+  } else if (event.key == "Backspace") {
+    document.getElementById("overlay").style.setProperty("display", "flex");
     Running = false;
   }
 });
