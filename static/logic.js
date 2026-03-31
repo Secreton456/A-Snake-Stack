@@ -14,7 +14,7 @@ const FOOD = new Map([
   ["PUMPKIN_PIE", [4, 0, 0.18, "../assets/pumpkin_pie.png"]],
   ["GOLDEN_CARROT", [5, 5, 0.09, "../assets/golden_carrot.png"]],
   ["GOLDEN_APPLE", [5, 7, 0.029, "../assets/golden_apple.png"]],
-  ["ENCHANTED_APPLE", [10, 10, 0.401, "../assets/enchanted_apple.png"]],
+  ["ENCHANTED_APPLE", [10, 10, 0.001, "../assets/enchanted_apple.png"]],
 ]);
 // All the IMAGES from assets folder load and get stored here
 const IMAGES = new Map();
