@@ -20,7 +20,7 @@ const FOOD = new Map([
 const IMAGES = new Map();
 // =====================================================================
 let Running = false;
-
+let Begin = true;
 // ========================== Game Variables ==========================
 let curDir = 1;
 let snakeLength = 1;
@@ -28,8 +28,8 @@ let snakeHealth = 1;
 let inStateOfEating = false; // True when the snake head coincides with a food item
 
 // Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
-let snake_row = Math.floor((Math.random() * CANVAS_WIDTH) / GRID_WIDTH);
-let snake_column = Math.floor((Math.random() * CANVAS_HEIGHT) / GRID_WIDTH);
+let snake_row = Math.floor(CANVAS_WIDTH / (2*GRID_WIDTH)) - 5;
+let snake_column = Math.floor(CANVAS_HEIGHT / (2*GRID_WIDTH));
 
 let Food_cells = []; // [ { x:row, y:column,type: "FOOD_NAME" },... ]
 let Snake_cells = [{ x: snake_row, y: snake_column }]; // [ { x:row, y:column },... ]
@@ -73,7 +73,7 @@ function UpdateSnake() {
         snakeCell.y * GRID_WIDTH,
         GRID_WIDTH,
         GRID_WIDTH,
-      );
+      ); 
     } else {
       //body
       ctx.drawImage(
@@ -180,10 +180,11 @@ document.addEventListener("keydown", (event) => {
   )
     curDir = 4;
   else if (event.key == "Enter") {
-    document.getElementById("overlay").style.setProperty("display", "none");
+    document.getElementById("overlay-homescreen").style.setProperty("display", "none");
+    document.getElementById("overlay-endscreen").style.setProperty("display", "none");
     Running = true;
   } else if (event.key == "Backspace") {
-    document.getElementById("overlay").style.setProperty("display", "flex");
+    document.getElementById("overlay-homescreen").style.setProperty("display", "flex");
     Running = false;
   }
 });
@@ -197,6 +198,8 @@ function SnakeMovement() {
 
 function gameLoop() {
   if (Running) {
+    start();
+    checkdeath();
     UpdateCanvas();
     FoodSpawns();
     UpdateSnake();
@@ -207,3 +210,47 @@ function gameLoop() {
 }
 LoadImages();
 setInterval(gameLoop, 100);
+
+function start(){
+  if(Begin){
+    curDir = 1;
+    snakeHealth = 1;
+    snakeLength = 1;
+    inStateOfEating = false;
+    snake_row = Math.floor(CANVAS_WIDTH / (2*GRID_WIDTH)) - 5;
+    snake_column = Math.floor(CANVAS_HEIGHT / (2*GRID_WIDTH));
+    Snake_cells = [{ x: snake_row, y: snake_column }];
+    Food_cells=[];
+    Begin = false;
+  }
+}
+
+function checkdeath(){
+  //checking for bumping with wall
+  if (snake_row === -1 || snake_row === CANVAS_WIDTH / GRID_WIDTH + 1 || snake_column === -1 || snake_column === CANVAS_HEIGHT / GRID_WIDTH + 1) {
+    Running  = false;
+    EndScore = document.getElementById("EndScore");
+    EndScore.innerHTML = "<br>" + "<text class='header' style='color: aliceblue;'>Ouch, theres a wall for a reason man!</text>";
+    EndScore.innerHTML += "<br>" + "<text class='header' style='color: aliceblue;'>Final Score:" + snakeHealth + "</text>";
+    if (snakeHealth < 20) {EndScore.innerHTML += "<br>" + "<text class='header' style='color: yellow;'>Status:Coughing baby</text>";}
+    if (snakeHealth > 100) {EndScore.innerHTML += "<br>" + "<text class='header' style='color: purple;'>Status:Hydrogen Bomb</text>";}
+    document.getElementById("overlay-endscreen").style.setProperty("display", "flex");
+    Begin = true;
+  }
+  //checking for bumping with itself
+  if (snakeLength > 1) {
+    Snake_cells.forEach((snakeCell, index) => {
+    if (index != 0 && snakeCell.x === snake_row && snakeCell.y === snake_column) {
+      Running  = false;
+      EndScore = document.getElementById("EndScore");
+      EndScore.innerHTML = "<br>" + "<text class='header' style='color: aliceblue;'>Ah! Having a long body has its own problems</text>";
+      EndScore.innerHTML += "<br>" + "<text class='header' style='color: aliceblue;'>Final Score:" + snakeHealth + "</text>";
+      if (snakeHealth < 20) {EndScore.innerHTML += "<br>" + "<text class='header' style='color: yellow;'>Status:Coughing baby</text>";}
+      if (snakeHealth > 100) {EndScore.innerHTML += "<br>" + "<text class='header' style='color: purple;'>Status:Hydrogen Bomb</text>";}
+      document.getElementById("overlay-endscreen").style.setProperty("display", "flex");
+      Begin = true;
+      return;
+    }
+  });
+  }
+}

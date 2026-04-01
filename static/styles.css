@@ -41,7 +41,7 @@ html {
   height: 100%;
 }
 /* FOR DIM OVERLAY ON SCREEN WHILE ON HOMESCREEN*/
-#overlay{
+#overlay-homescreen{
   position: fixed;
   left: 0;
   top: 0;
@@ -63,6 +63,35 @@ html {
 }
 /* IMG USED IN POPUP */
 #modal-img{
+  width: 100%;
+  max-width: 350px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  border-radius: 10px;
+}
+
+#overlay-endscreen{
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(117, 117, 117, 0.5);
+}
+
+#end-popup{
+  background-color: #2f4f2f;
+  width: 90%;
+  max-width: 420px;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+#end_modal-img{
   width: 100%;
   max-width: 350px;
   height: auto;
