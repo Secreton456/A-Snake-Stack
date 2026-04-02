@@ -19,6 +19,11 @@ const FOOD = new Map([
 ]);
 // All the IMAGES from assets folder load and get stored here
 const IMAGES = new Map();
+// A  map of the death messages displayed after the game is over
+const DEATH_MESSAGES = new Map([
+  ["WALL", "Ouch, theres a wall for a reason man!"],
+  ["BODY", "Ah! Having a long body has its own problems</text>"],
+]);
 // =====================================================================
 let Running = false;
 let Begin = true;
@@ -27,7 +32,7 @@ let curDir = 1;
 let snakeLength = 1;
 let snakeHealth = 1;
 let inStateOfEating = false; // True when the snake head coincides with a food item
-let immuneDuration = 0;
+let immuneDuration = 0; // in ms
 
 // Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
 let snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
@@ -234,30 +239,7 @@ function checkdeath() {
       snake_column <= -1 ||
       snake_column >= CANVAS_HEIGHT / GRID_WIDTH + 1
     ) {
-      Running = false;
-      EndScore = document.getElementById("EndScore");
-      EndScore.innerHTML =
-        "<br>" +
-        "<text class='header' style='color: aliceblue;'>Ouch, theres a wall for a reason man!</text>";
-      EndScore.innerHTML +=
-        "<br>" +
-        "<text class='header' style='color: aliceblue;'>Final Score:" +
-        snakeHealth +
-        "</text>";
-      if (snakeHealth < 20) {
-        EndScore.innerHTML +=
-          "<br>" +
-          "<text class='header' style='color: yellow;'>Status:Coughing baby</text>";
-      }
-      if (snakeHealth > 100) {
-        EndScore.innerHTML +=
-          "<br>" +
-          "<text class='header' style='color: purple;'>Status:Hydrogen Bomb</text>";
-      }
-      document
-        .getElementById("overlay-endscreen")
-        .style.setProperty("display", "flex");
-      Begin = true;
+      EndScreen("WALL");
     }
     //checking for bumping with itself
     if (snakeLength > 1) {
@@ -267,38 +249,44 @@ function checkdeath() {
           snakeCell.x === snake_row &&
           snakeCell.y === snake_column
         ) {
-          Running = false;
-          EndScore = document.getElementById("EndScore");
-          EndScore.innerHTML =
-            "<br>" +
-            "<text class='header' style='color: aliceblue;'>Ah! Having a long body has its own problems</text>";
-          EndScore.innerHTML +=
-            "<br>" +
-            "<text class='header' style='color: aliceblue;'>Final Score:" +
-            snakeHealth +
-            "</text>";
-          if (snakeHealth < 20) {
-            EndScore.innerHTML +=
-              "<br>" +
-              "<text class='header' style='color: yellow;'>Status:Coughing Baby</text>";
-          } else if (snakeHealth > 100) {
-            EndScore.innerHTML +=
-              "<br>" +
-              "<text class='header' style='color: purple;'>Status:Hydrogen Bomb</text>";
-          } else {
-            EndScore.innerHTML +=
-              "<br>" +
-              "<text class='header' style='color: red;'>Status:Hydrogen Baby</text>";
-          }
-          document
-            .getElementById("overlay-endscreen")
-            .style.setProperty("display", "flex");
-          Begin = true;
+          EndScreen("BODY");
           return;
         }
       });
     }
   }
+}
+
+function EndScreen(cause) {
+  Running = false;
+  EndScore = document.getElementById("EndScore");
+  EndScore.innerHTML =
+    "<br>" +
+    "<text class='header' style='color: aliceblue;'>" +
+    DEATH_MESSAGES.get(cause) +
+    "</text>";
+  EndScore.innerHTML +=
+    "<br>" +
+    "<text class='header' style='color: aliceblue;'>Final Score:" +
+    snakeHealth +
+    "</text>";
+  if (snakeHealth < 20) {
+    EndScore.innerHTML +=
+      "<br>" +
+      "<text class='header' style='color: yellow;'>Status:Coughing baby</text>";
+  } else if (snakeHealth > 100) {
+    EndScore.innerHTML +=
+      "<br>" +
+      "<text class='header' style='color: purple;'>Status:Hydrogen Bomb</text>";
+  } else {
+    EndScore.innerHTML +=
+      "<br>" +
+      "<text class='header' style='color: blue;'>Status:Hydrogen Baby</text>";
+  }
+  document
+    .getElementById("overlay-endscreen")
+    .style.setProperty("display", "flex");
+  Begin = true;
 }
 
 function gameLoop() {
