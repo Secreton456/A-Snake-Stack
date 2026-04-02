@@ -4,17 +4,18 @@ const ctx = canvas.getContext("2d");
 const GRID_WIDTH = 32;
 const CANVAS_WIDTH = 1280;
 const CANVAS_HEIGHT = 800;
+const GAME_FRAME_RATE = 10;
 const e = 2.718;
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
-// FOOD_TYPE: [HEALTH, IMMUNITY, RELATIVE PROBABILITY, IMAGE SOURCE]
+// FOOD_TYPE: [HEALTH, IMMUNITY(in ms), RELATIVE PROBABILITY, IMAGE SOURCE]
 const FOOD = new Map([
   ["APPLE", [1, 0, 0.4, "../assets/apple.png"]],
   ["CARROT", [1, 0, 0.3, "../assets/carrot.png"]],
   ["PUMPKIN_PIE", [4, 0, 0.18, "../assets/pumpkin_pie.png"]],
-  ["GOLDEN_CARROT", [5, 5, 0.09, "../assets/golden_carrot.png"]],
-  ["GOLDEN_APPLE", [5, 7, 0.029, "../assets/golden_apple.png"]],
-  ["ENCHANTED_APPLE", [10, 10, 0.001, "../assets/enchanted_apple.png"]],
+  ["GOLDEN_CARROT", [5, 5000, 0.09, "../assets/golden_carrot.png"]],
+  ["GOLDEN_APPLE", [5, 7000, 0.029, "../assets/golden_apple.png"]],
+  ["ENCHANTED_APPLE", [10, 10000, 0.001, "../assets/enchanted_apple.png"]],
 ]);
 // All the IMAGES from assets folder load and get stored here
 const IMAGES = new Map();
@@ -26,10 +27,11 @@ let curDir = 1;
 let snakeLength = 1;
 let snakeHealth = 1;
 let inStateOfEating = false; // True when the snake head coincides with a food item
+let immuneDuration = 0;
 
 // Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
-let snake_row = Math.floor(CANVAS_WIDTH / (2*GRID_WIDTH)) - 5;
-let snake_column = Math.floor(CANVAS_HEIGHT / (2*GRID_WIDTH));
+let snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
+let snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
 
 let Food_cells = []; // [ { x:row, y:column,type: "FOOD_NAME" },... ]
 let Snake_cells = [{ x: snake_row, y: snake_column }]; // [ { x:row, y:column },... ]
@@ -73,7 +75,7 @@ function UpdateSnake() {
         snakeCell.y * GRID_WIDTH,
         GRID_WIDTH,
         GRID_WIDTH,
-      ); 
+      );
     } else {
       //body
       ctx.drawImage(
@@ -125,6 +127,7 @@ function EatFood() {
       Food_cells.splice(index, 1); // Removes the first instance of the snake head in the array
       snakeHealth += FOOD.get(food.type)[0];
       snakeLength++;
+      immuneDuration = Math.max(immuneDuration, FOOD.get(food.type)[1]);
       found = true;
     }
   }
@@ -180,11 +183,17 @@ document.addEventListener("keydown", (event) => {
   )
     curDir = 4;
   else if (event.key == "Enter") {
-    document.getElementById("overlay-homescreen").style.setProperty("display", "none");
-    document.getElementById("overlay-endscreen").style.setProperty("display", "none");
+    document
+      .getElementById("overlay-homescreen")
+      .style.setProperty("display", "none");
+    document
+      .getElementById("overlay-endscreen")
+      .style.setProperty("display", "none");
     Running = true;
   } else if (event.key == "Backspace") {
-    document.getElementById("overlay-homescreen").style.setProperty("display", "flex");
+    document
+      .getElementById("overlay-homescreen")
+      .style.setProperty("display", "flex");
     Running = false;
   }
 });
@@ -196,9 +205,106 @@ function SnakeMovement() {
   else snake_row--;
 }
 
+function updateImmunity() {
+  if (immuneDuration >= 1000 / GAME_FRAME_RATE)
+    immuneDuration -= 1000 / GAME_FRAME_RATE;
+}
+
+function start() {
+  if (Begin) {
+    curDir = 1;
+    snakeHealth = 1;
+    snakeLength = 1;
+    inStateOfEating = false;
+    snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
+    snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
+    Snake_cells = [{ x: snake_row, y: snake_column }];
+    Food_cells = [];
+    Begin = false;
+  }
+}
+
+function checkdeath() {
+  // Checks for death only when not immune
+  if (immuneDuration == 0) {
+    //checking for bumping with wall
+    if (
+      snake_row <= -1 ||
+      snake_row >= CANVAS_WIDTH / GRID_WIDTH + 1 ||
+      snake_column <= -1 ||
+      snake_column >= CANVAS_HEIGHT / GRID_WIDTH + 1
+    ) {
+      Running = false;
+      EndScore = document.getElementById("EndScore");
+      EndScore.innerHTML =
+        "<br>" +
+        "<text class='header' style='color: aliceblue;'>Ouch, theres a wall for a reason man!</text>";
+      EndScore.innerHTML +=
+        "<br>" +
+        "<text class='header' style='color: aliceblue;'>Final Score:" +
+        snakeHealth +
+        "</text>";
+      if (snakeHealth < 20) {
+        EndScore.innerHTML +=
+          "<br>" +
+          "<text class='header' style='color: yellow;'>Status:Coughing baby</text>";
+      }
+      if (snakeHealth > 100) {
+        EndScore.innerHTML +=
+          "<br>" +
+          "<text class='header' style='color: purple;'>Status:Hydrogen Bomb</text>";
+      }
+      document
+        .getElementById("overlay-endscreen")
+        .style.setProperty("display", "flex");
+      Begin = true;
+    }
+    //checking for bumping with itself
+    if (snakeLength > 1) {
+      Snake_cells.forEach((snakeCell, index) => {
+        if (
+          index != 0 &&
+          snakeCell.x === snake_row &&
+          snakeCell.y === snake_column
+        ) {
+          Running = false;
+          EndScore = document.getElementById("EndScore");
+          EndScore.innerHTML =
+            "<br>" +
+            "<text class='header' style='color: aliceblue;'>Ah! Having a long body has its own problems</text>";
+          EndScore.innerHTML +=
+            "<br>" +
+            "<text class='header' style='color: aliceblue;'>Final Score:" +
+            snakeHealth +
+            "</text>";
+          if (snakeHealth < 20) {
+            EndScore.innerHTML +=
+              "<br>" +
+              "<text class='header' style='color: yellow;'>Status:Coughing Baby</text>";
+          } else if (snakeHealth > 100) {
+            EndScore.innerHTML +=
+              "<br>" +
+              "<text class='header' style='color: purple;'>Status:Hydrogen Bomb</text>";
+          } else {
+            EndScore.innerHTML +=
+              "<br>" +
+              "<text class='header' style='color: red;'>Status:Hydrogen Baby</text>";
+          }
+          document
+            .getElementById("overlay-endscreen")
+            .style.setProperty("display", "flex");
+          Begin = true;
+          return;
+        }
+      });
+    }
+  }
+}
+
 function gameLoop() {
   if (Running) {
     start();
+    updateImmunity();
     checkdeath();
     UpdateCanvas();
     FoodSpawns();
@@ -208,49 +314,6 @@ function gameLoop() {
     UpdateScoreBoard();
   }
 }
+
 LoadImages();
-setInterval(gameLoop, 100);
-
-function start(){
-  if(Begin){
-    curDir = 1;
-    snakeHealth = 1;
-    snakeLength = 1;
-    inStateOfEating = false;
-    snake_row = Math.floor(CANVAS_WIDTH / (2*GRID_WIDTH)) - 5;
-    snake_column = Math.floor(CANVAS_HEIGHT / (2*GRID_WIDTH));
-    Snake_cells = [{ x: snake_row, y: snake_column }];
-    Food_cells=[];
-    Begin = false;
-  }
-}
-
-function checkdeath(){
-  //checking for bumping with wall
-  if (snake_row === -1 || snake_row === CANVAS_WIDTH / GRID_WIDTH + 1 || snake_column === -1 || snake_column === CANVAS_HEIGHT / GRID_WIDTH + 1) {
-    Running  = false;
-    EndScore = document.getElementById("EndScore");
-    EndScore.innerHTML = "<br>" + "<text class='header' style='color: aliceblue;'>Ouch, theres a wall for a reason man!</text>";
-    EndScore.innerHTML += "<br>" + "<text class='header' style='color: aliceblue;'>Final Score:" + snakeHealth + "</text>";
-    if (snakeHealth < 20) {EndScore.innerHTML += "<br>" + "<text class='header' style='color: yellow;'>Status:Coughing baby</text>";}
-    if (snakeHealth > 100) {EndScore.innerHTML += "<br>" + "<text class='header' style='color: purple;'>Status:Hydrogen Bomb</text>";}
-    document.getElementById("overlay-endscreen").style.setProperty("display", "flex");
-    Begin = true;
-  }
-  //checking for bumping with itself
-  if (snakeLength > 1) {
-    Snake_cells.forEach((snakeCell, index) => {
-    if (index != 0 && snakeCell.x === snake_row && snakeCell.y === snake_column) {
-      Running  = false;
-      EndScore = document.getElementById("EndScore");
-      EndScore.innerHTML = "<br>" + "<text class='header' style='color: aliceblue;'>Ah! Having a long body has its own problems</text>";
-      EndScore.innerHTML += "<br>" + "<text class='header' style='color: aliceblue;'>Final Score:" + snakeHealth + "</text>";
-      if (snakeHealth < 20) {EndScore.innerHTML += "<br>" + "<text class='header' style='color: yellow;'>Status:Coughing baby</text>";}
-      if (snakeHealth > 100) {EndScore.innerHTML += "<br>" + "<text class='header' style='color: purple;'>Status:Hydrogen Bomb</text>";}
-      document.getElementById("overlay-endscreen").style.setProperty("display", "flex");
-      Begin = true;
-      return;
-    }
-  });
-  }
-}
+setInterval(gameLoop, 1000 / GAME_FRAME_RATE);
