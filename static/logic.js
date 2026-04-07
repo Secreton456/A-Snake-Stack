@@ -1,13 +1,14 @@
 // ========================== Game Constants ==========================
 const canvas = document.getElementById("Canvas");
 const ctx = canvas.getContext("2d");
-const GRID_WIDTH = 32;
 const CANVAS_WIDTH = 1280;
 const CANVAS_HEIGHT = 800;
-const GAME_FRAME_RATE = 10;
 const e = 2.718;
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
+let GRID_WIDTH = 32;
+let GAME_FRAME_RATE = 10;
+let interval = 0;
 // FOOD_TYPE: [HEALTH, IMMUNITY(in ms), RELATIVE PROBABILITY, IMAGE SOURCE]
 const FOOD = new Map([
   ["APPLE", [1, 0, 0.4, "../assets/apple.png"]],
@@ -37,10 +38,23 @@ let immuneDuration = 0; // in ms
 // Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
 let snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
 let snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
-
 let Food_cells = []; // [ { x:row, y:column,type: "FOOD_NAME" },... ]
 let Snake_cells = [{ x: snake_row, y: snake_column }]; // [ { x:row, y:column },... ]
 // =====================================================================
+
+function initiate_game_variables() {
+  curDir = 1;
+  snakeLength = 1;
+  snakeHealth = 1;
+  inStateOfEating = false; // True when the snake head coincides with a food item
+  immuneDuration = 0; // in ms
+  // Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
+  snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
+  snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
+  Food_cells = []; // [ { x:row, y:column,type: "FOOD_NAME" },... ]
+  Snake_cells = [{ x: snake_row, y: snake_column }]; // [ { x:row, y:column },... ]
+  // =====================================================================
+}
 
 // Updates the Canvas Including the grid and the background
 function UpdateCanvas() {
@@ -187,14 +201,11 @@ document.addEventListener("keydown", (event) => {
     curDir != 3
   )
     curDir = 4;
-  else if (event.key == "Enter") {
+  else if (event.key == "Enter" && Begin == false) {
+    document.getElementById("Difficulty").style.setProperty("display", "none");
     document
       .getElementById("overlay-homescreen")
       .style.setProperty("display", "none");
-    document
-      .getElementById("overlay-endscreen")
-      .style.setProperty("display", "none");
-    Running = true;
   } else if (event.key == "Backspace") {
     document
       .getElementById("overlay-homescreen")
@@ -216,16 +227,33 @@ function updateImmunity() {
 }
 
 function start() {
-  if (Begin) {
-    curDir = 1;
-    snakeHealth = 1;
-    snakeLength = 1;
-    inStateOfEating = false;
-    snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
-    snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
-    Snake_cells = [{ x: snake_row, y: snake_column }];
-    Food_cells = [];
-    Begin = false;
+  let Difficulty = "NONE";
+  if (document.getElementById("Difficult").checked == true)
+    Difficulty = "DIFFICULT";
+  else if (document.getElementById("Easy").checked == true) Difficulty = "EASY";
+  if (Difficulty == "DIFFICULT") {
+    GRID_WIDTH = 32;
+    GAME_FRAME_RATE = 10;
+  } else if (Difficulty == "EASY") {
+    GRID_WIDTH = 64;
+    GAME_FRAME_RATE = 5;
+  } else {
+    document.getElementById("errormsg").innerHTML =
+      "<text class='header' style='color: red;'>Please select a difficulty level to start the game</text>";
+  }
+  if (Difficulty != "NONE") {
+    if (Begin) {
+      initiate_game_variables();
+      Begin = false;
+      document
+        .getElementById("overlay-homescreen")
+        .style.setProperty("display", "none");
+      document
+        .getElementById("overlay-endscreen")
+        .style.setProperty("display", "none");
+      Running = true;
+    }
+    interval = setInterval(gameLoop, 1000 / GAME_FRAME_RATE);
   }
 }
 
@@ -258,6 +286,7 @@ function checkdeath() {
 }
 
 function EndScreen(cause) {
+  clearInterval(interval);
   Running = false;
   EndScore = document.getElementById("EndScore");
   EndScore.innerHTML =
@@ -291,7 +320,6 @@ function EndScreen(cause) {
 
 function gameLoop() {
   if (Running) {
-    start();
     updateImmunity();
     checkdeath();
     UpdateCanvas();
@@ -303,5 +331,14 @@ function gameLoop() {
   }
 }
 
+function home() {
+  document
+    .getElementById("overlay-endscreen")
+    .style.setProperty("display", "none");
+  document.getElementById("Difficulty").style.setProperty("display", "flex");
+  document
+    .getElementById("overlay-homescreen")
+    .style.setProperty("display", "flex");
+  initiate_game_variables();
+}
 LoadImages();
-setInterval(gameLoop, 1000 / GAME_FRAME_RATE);
