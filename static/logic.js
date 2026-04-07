@@ -202,11 +202,12 @@ document.addEventListener("keydown", (event) => {
   )
     curDir = 4;
   else if (event.key == "Enter" && Begin == false) {
-    document.getElementById("Difficulty").style.setProperty("display", "none");
     document
       .getElementById("overlay-homescreen")
       .style.setProperty("display", "none");
+    Running = true;
   } else if (event.key == "Backspace") {
+    document.getElementById("Difficulty").style.setProperty("display", "none");
     document
       .getElementById("overlay-homescreen")
       .style.setProperty("display", "flex");
@@ -242,6 +243,7 @@ function start() {
       "<text class='header' style='color: red;'>Please select a difficulty level to start the game</text>";
   }
   if (Difficulty != "NONE") {
+    document.getElementById("errormsg").innerHTML = "";
     if (Begin) {
       initiate_game_variables();
       Begin = false;
