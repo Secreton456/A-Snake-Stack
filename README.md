@@ -107,6 +107,6 @@ To be able to run this project on your local machine, you must run the following
 git clone https://github.com/Secreton456/A-Snake-Stack
 cd A-Snake-Stack/
 python3 -m venv .venv
-source venv/bin/activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```

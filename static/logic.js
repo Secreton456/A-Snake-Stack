@@ -8,14 +8,156 @@ const GAME_FRAME_RATE = 10;
 const e = 2.718;
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
+// ========================== Game Classes ============================
+class Food {
+  constructor(name, health, immunity, probability, img_src) {
+    this.name = name;
+    this.health = health;
+    this.immunity = immunity;
+    this.probability = probability;
+    this.img_src = img_src;
+  }
+  load_img() {
+    let img = new Image();
+    img.src = this.img_src;
+    img.onload = () => {
+      IMAGES.set(this.name, img);
+    };
+  }
+}
+
+class Obstacle {
+  constructor(name, row, column) {
+    this.name = name;
+    this.img_src = IMAGES.get(name);
+    this.row = row;
+    this.column = column;
+  }
+  draw() {
+    ctx.drawImage(
+      this.img_src,
+      this.row * GRID_WIDTH,
+      this.column * GRID_WIDTH,
+      GRID_WIDTH,
+      GRID_WIDTH,
+    );
+  }
+  isActive(Snake_cells) {
+    if (Snake_cells[0].x == this.row && Snake_cells[0].y == this.column)
+      return true;
+  }
+  isPassiveActive(Snake_cells) {
+    for (let cell of Snake_cells) {
+      if (cell.x == this.row && cell.y == this.column) return true;
+    }
+    return false;
+  }
+  effect() {}
+}
+
+class RottenFlesh extends Obstacle {
+  constructor(name, row, column, damage_per_frame) {
+    super(name, row, column);
+    this.damage_per_frame = damage_per_frame;
+  }
+  draw() {
+    super.draw();
+  }
+  isActive(Snake_cells) {
+    return super.isActive(Snake_cells);
+  }
+  isPassiveActive(Snake_cells) {
+    return false;
+  }
+  effect() {}
+}
+
+class Lava extends Obstacle {
+  constructor(name, row, column) {
+    super(name, row, column);
+  }
+  draw() {
+    super.draw();
+  }
+  isActive(Snake_cells) {
+    return super.isActive(Snake_cells);
+  }
+  isPassiveActive(Snake_cells) {
+    return false;
+  }
+  effect() {}
+}
+
+class Magma extends Obstacle {
+  constructor(name, row, column, damage_per_frame) {
+    super(name, row, column);
+    this.damage_per_frame = damage_per_frame;
+  }
+  draw() {
+    super.draw();
+  }
+  isActive() {
+    return false;
+  }
+  isPassiveActive(Snake_cells) {
+    return super.isPassiveActive(Snake_cells);
+  }
+  effect() {}
+}
+
+class SoulSand extends Obstacle {
+  constructor(name, row, column, speedbuff) {
+    super(name, row, column);
+    this.speedbuff = speedbuff;
+  }
+  draw() {
+    super.draw();
+  }
+  isActive() {
+    return false;
+  }
+  isPassiveActive(Snake_cells) {
+    return super.isPassiveActive(Snake_cells);
+  }
+  effect() {}
+}
+
+class BlueIce extends Obstacle {
+  constructor(name, row, column, speedbuff) {
+    super(name, row, column);
+    this.speedbuff = speedbuff;
+  }
+  draw() {
+    super.draw();
+  }
+  isActive() {
+    return false;
+  }
+  isPassiveActive(Snake_cells) {
+    return super.isPassiveActive(Snake_cells);
+  }
+  effect() {}
+}
+// ====================================================================
+
 // FOOD_TYPE: [HEALTH, IMMUNITY(in ms), RELATIVE PROBABILITY, IMAGE SOURCE]
-const FOOD = new Map([
-  ["APPLE", [1, 0, 0.4, "../assets/apple.png"]],
-  ["CARROT", [1, 0, 0.3, "../assets/carrot.png"]],
-  ["PUMPKIN_PIE", [4, 0, 0.18, "../assets/pumpkin_pie.png"]],
-  ["GOLDEN_CARROT", [5, 5000, 0.09, "../assets/golden_carrot.png"]],
-  ["GOLDEN_APPLE", [5, 7000, 0.029, "../assets/golden_apple.png"]],
-  ["ENCHANTED_APPLE", [10, 10000, 0.001, "../assets/enchanted_apple.png"]],
+// prettier-ignore
+const FOOD_ITEMS = new Map([
+  ["APPLE", new Food("APPLE", 1, 0, 0.4, "../assets/apple.png")],
+  ["CARROT", new Food("CARROT", 1, 0, 0.3, "../assets/carrot.png")],
+  ["PUMPKIN_PIE", new Food("PUMPKIN_PIE", 4, 0, 0.18, "../assets/pumpkin_pie.png")],
+  ["GOLDEN_CARROT",new Food("GOLDEN_CARROT", 5, 5000, 0.09, "../assets/golden_carrot.png")],
+  ["GOLDEN_APPLE",new Food("GOLDEN_APPLE", 5, 7000, 0.029, "../assets/golden_apple.png")],
+  ["ENCHANTED_APPLE",new Food("ENCHANTED_APPLE",10,10000,0.001,"../assets/enchanted_apple.png")],
+]);
+
+// PROBABLITY OF SPAWNING STORED
+const OBSTACLE_ITEMS = new Map([
+  ["LAVA", 0.1],
+  ["MAGMA", 0.1],
+  ["ROTTEN_FLESH", 0.1],
+  ["SOUL_SAND", 0.1],
+  ["BLUE_ICE", 0.1],
 ]);
 // All the IMAGES from assets folder load and get stored here
 const IMAGES = new Map();
@@ -24,9 +166,12 @@ const DEATH_MESSAGES = new Map([
   ["WALL", "Ouch, theres a wall for a reason man!"],
   ["BODY", "Ah! Having a long body has its own problems</text>"],
 ]);
+
 // =====================================================================
+
 let Running = false;
 let Begin = true;
+
 // ========================== Game Variables ==========================
 let curDir = 1;
 let snakeLength = 1;
@@ -39,6 +184,8 @@ let snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
 let snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
 
 let Food_cells = []; // [ { x:row, y:column,type: "FOOD_NAME" },... ]
+let Obstacle_cells = [];
+let Obstacle_objects;
 let Snake_cells = [{ x: snake_row, y: snake_column }]; // [ { x:row, y:column },... ]
 // =====================================================================
 
@@ -99,12 +246,11 @@ function FoodSpawns() {
   // The probability of food spawning set to be inversely proportional to the exponent of the present number of food slots.
   for (let i = 1; i <= CANVAS_WIDTH / GRID_WIDTH; i++)
     for (let j = 1; j <= CANVAS_HEIGHT / GRID_WIDTH; j++)
-      for (let [food, value] of FOOD) {
-        if (
-          Math.random() <
-          (0.5 * value[2]) / (e ** (Food_cells.length ** 1) * 6)
-        )
-          Food_cells[Food_cells.length] = { x: i, y: j, type: food };
+      for (let [food, value] of FOOD_ITEMS) {
+        //prettier-ignore
+        if (Math.random() < (0.5 * value.probability) / (e ** (Food_cells.length ** 1) * 6))
+          if(Food_cells.find(cell => (cell.x == i && cell.y == j))===undefined)
+            Food_cells[Food_cells.length] = { x: i, y: j, type: food };
       }
 
   // sorting the Food_cells
@@ -122,6 +268,31 @@ function FoodSpawns() {
   }
 }
 
+function ObstacleSpawns() {
+  //prettier-ignore
+  for (let i = 1; i <= CANVAS_WIDTH / GRID_WIDTH; i++)
+    for (let j = 1; j <= CANVAS_HEIGHT / GRID_WIDTH; j++)
+      for (let [obstacle, value] of OBSTACLE_ITEMS) {
+        if(Math.random() < (0.05 * value) / (e ** (Obstacle_cells.length ** 1) * 6))
+          if(Obstacle_cells.find(cell => (cell.row == i && cell.column == j))===undefined){
+            if(obstacle == "ROTTEN_FLESH")
+              Obstacle_cells.push(new RottenFlesh(obstacle, i, j, 0.5));
+            else if(obstacle == "LAVA")
+              Obstacle_cells.push(new Lava(obstacle, i, j));
+            else if(obstacle == "MAGMA")
+              Obstacle_cells.push(new Magma(obstacle, i , j, 0.5));
+            else if(obstacle == "SOUL_SAND")
+              Obstacle_cells.push(new SoulSand(obstacle, i , j, 2));
+            else if(obstacle == "BLUE_ICE")
+              Obstacle_cells.push(new BlueIce(obstacle, i , j, 0.5));
+          } 
+      }
+
+  for (const obstacle of Obstacle_cells) {
+    obstacle.draw();
+  }
+}
+
 function EatFood() {
   let found = false; // temporary variable to update inStateofEating
   for (let food of Food_cells) {
@@ -130,13 +301,32 @@ function EatFood() {
         (obj) => obj.x == food.x && obj.y == food.y,
       );
       Food_cells.splice(index, 1); // Removes the first instance of the snake head in the array
-      snakeHealth += FOOD.get(food.type)[0];
+      snakeHealth += FOOD_ITEMS.get(food.type).health;
       snakeLength++;
-      immuneDuration = Math.max(immuneDuration, FOOD.get(food.type)[1]);
+      immuneDuration = Math.max(
+        immuneDuration,
+        FOOD_ITEMS.get(food.type).immunity,
+      );
       found = true;
     }
   }
   inStateOfEating = found; // update inStateOfEating
+}
+//----------------------------------------------------
+
+function PassObstacles() {
+  for (let obstacle of Obstacle_cells) {
+    if (obstacle.isActive(Snake_cells)) {
+      let index = Obstacle_cells.findIndex(
+        (obj) => obj.row == obstacle.row && obj.column == obstacle.column,
+      );
+      obstacle.effect();
+      Obstacle_cells.splice(index, 1);
+    }
+    if (obstacle.isPassiveActive(Snake_cells)) {
+      obstacle.effect();
+    }
+  }
 }
 
 function UpdateScoreBoard() {
@@ -146,14 +336,25 @@ function UpdateScoreBoard() {
 }
 
 function LoadImages() {
-  for (let [food, value] of FOOD) {
-    let img = new Image();
-    img.src = value[3];
-    img.onload = () => {
-      IMAGES.set(food, img);
-    };
+  for (let [name, value] of FOOD_ITEMS) {
+    value.load_img();
   }
-
+  let obstaclefiles = [
+    "blue_ice.png",
+    "lava.jpeg",
+    "magma.png",
+    "rotten_flesh.png",
+    "soul_sand.png",
+  ];
+  obstaclefiles.forEach((file) => {
+    let name = file.split(".");
+    let img = new Image();
+    img.src = `../assets/${file}`;
+    name = name[0].toUpperCase();
+    img.onload = () => {
+      IMAGES.set(name, img);
+    };
+  });
   let SnakeBodyImg = new Image();
   SnakeBodyImg.src = "../assets/SnakeBody.png";
   let SnakeHeadImg = new Image();
@@ -289,6 +490,8 @@ function EndScreen(cause) {
   Begin = true;
 }
 
+LoadImages();
+
 function gameLoop() {
   if (Running) {
     start();
@@ -296,12 +499,13 @@ function gameLoop() {
     checkdeath();
     UpdateCanvas();
     FoodSpawns();
+    ObstacleSpawns();
     UpdateSnake();
     SnakeMovement();
     EatFood();
+    PassObstacles();
     UpdateScoreBoard();
   }
 }
 
-LoadImages();
 setInterval(gameLoop, 1000 / GAME_FRAME_RATE);
