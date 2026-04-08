@@ -1,22 +1,21 @@
 // ========================== Game Constants ==========================
 const canvas = document.getElementById("Canvas");
 const ctx = canvas.getContext("2d");
+let GRID_WIDTH = 32;
 const CANVAS_WIDTH = 1280;
-const CANVAS_HEIGHT = 800;
+const CANVAS_HEIGHT = 832;
+let GAME_FRAME_RATE = 10;
 const e = 2.718;
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
-let GRID_WIDTH = 32;
-let GAME_FRAME_RATE = 10;
-let interval = 0;
 // FOOD_TYPE: [HEALTH, IMMUNITY(in ms), RELATIVE PROBABILITY, IMAGE SOURCE]
 const FOOD = new Map([
-  ["APPLE", [1, 0, 0.4, "../assets/apple.png"]],
-  ["CARROT", [1, 0, 0.3, "../assets/carrot.png"]],
-  ["PUMPKIN_PIE", [4, 0, 0.18, "../assets/pumpkin_pie.png"]],
-  ["GOLDEN_CARROT", [5, 5000, 0.09, "../assets/golden_carrot.png"]],
-  ["GOLDEN_APPLE", [5, 7000, 0.029, "../assets/golden_apple.png"]],
-  ["ENCHANTED_APPLE", [10, 10000, 0.001, "../assets/enchanted_apple.png"]],
+  ["APPLE", [1, 0, 0.4, "/static/assets/apple.png"]],
+  ["CARROT", [1, 0, 0.3, "/static/assets/carrot.png"]],
+  ["PUMPKIN_PIE", [4, 0, 0.18, "/static/assets/pumpkin_pie.png"]],
+  ["GOLDEN_CARROT", [5, 5000, 0.09, "/static/assets/golden_carrot.png"]],
+  ["GOLDEN_APPLE", [5, 7000, 0.029, "/static/assets/golden_apple.png"]],
+  ["ENCHANTED_APPLE", [10, 10000, 0.001, "/static/assets/enchanted_apple.png"]],
 ]);
 // All the IMAGES from assets folder load and get stored here
 const IMAGES = new Map();
@@ -28,6 +27,7 @@ const DEATH_MESSAGES = new Map([
 // =====================================================================
 let Running = false;
 let Begin = true;
+let interval = 0;
 // ========================== Game Variables ==========================
 let curDir = 1;
 let snakeLength = 1;
@@ -169,9 +169,9 @@ function LoadImages() {
   }
 
   let SnakeBodyImg = new Image();
-  SnakeBodyImg.src = "../assets/SnakeBody.png";
+  SnakeBodyImg.src = "/static/assets/SnakeBody.png";
   let SnakeHeadImg = new Image();
-  SnakeHeadImg.src = "../assets/SnakeHead.png";
+  SnakeHeadImg.src = "/static/assets/SnakeHead.png";
   SnakeHeadImg.onload = () => {
     IMAGES.set("SNAKE_HEAD", SnakeHeadImg);
   };
@@ -333,14 +333,11 @@ function gameLoop() {
   }
 }
 
+//prettier-ignore
 function home() {
-  document
-    .getElementById("overlay-endscreen")
-    .style.setProperty("display", "none");
+  document.getElementById("overlay-endscreen").style.setProperty("display", "none");
   document.getElementById("Difficulty").style.setProperty("display", "flex");
-  document
-    .getElementById("overlay-homescreen")
-    .style.setProperty("display", "flex");
+  document.getElementById("overlay-homescreen").style.setProperty("display", "flex");
   initiate_game_variables();
 }
 LoadImages();

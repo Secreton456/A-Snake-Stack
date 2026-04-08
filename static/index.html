@@ -4,7 +4,7 @@
 
   <head>
     <title id="title">A Snake Stack</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="/static/styles.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
       rel="stylesheet"
@@ -15,7 +15,7 @@
     <div id="overlay-homescreen">
       <div id="modal-popup">
         <h2 class="header">Welcome to our MC ripoff snake game🐍</h2>
-        <img src="../assets/Homescreen_img.png" id="modal-img" />
+        <img src="/static/assets/Homescreen_img.png" id="modal-img" />
         <p class="header" style="color: aliceblue">SCOREBOARD</p>
         <div id="ScoreBoard"></div>
         <div id="Difficulty">
@@ -45,7 +45,7 @@
     <div id="overlay-endscreen">
       <div id="end-popup">
         <h2 class="header" style="color: red"><b>GAME OVER</b></h2>
-        <img src="../assets/Endscreen_img.png" id="end_modal-img" />
+        <img src="/static/assets/Endscreen_img.png" id="end_modal-img" />
         <div id="EndScore"></div>
         <button type="submit" onclick="home()">HOME</button>
       </div>
@@ -54,5 +54,5 @@
       <canvas id="Canvas"></canvas>
     </div>
   </body>
-  <script src="logic.js"></script>
+  <script src="/static/logic.js"></script>
 </html>
