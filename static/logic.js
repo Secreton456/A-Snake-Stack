@@ -32,6 +32,7 @@ class Obstacle {
     this.img_src = IMAGES.get(name);
     this.row = row;
     this.column = column;
+    this.eatable = true;
   }
   draw() {
     ctx.drawImage(
@@ -75,6 +76,7 @@ class RottenFlesh extends Obstacle {
 class Lava extends Obstacle {
   constructor(name, row, column) {
     super(name, row, column);
+    this.eatable = false;
   }
   draw() {
     super.draw();
@@ -89,9 +91,11 @@ class Lava extends Obstacle {
 }
 
 class Magma extends Obstacle {
-  constructor(name, row, column, damage_per_frame) {
+  constructor(name, row, column, damage_per_frame, time_left = 10) {
     super(name, row, column);
     this.damage_per_frame = damage_per_frame;
+    this.eatable = false;
+    this.time_left = time_left;
   }
   draw() {
     super.draw();
@@ -103,12 +107,15 @@ class Magma extends Obstacle {
     return super.isPassiveActive(Snake_cells);
   }
   effect() {}
+  updateTimer() {}
 }
 
 class SoulSand extends Obstacle {
-  constructor(name, row, column, speedbuff) {
+  constructor(name, row, column, speedbuff, time_left = 10) {
     super(name, row, column);
     this.speedbuff = speedbuff;
+    this.eatable = false;
+    this.time_left = time_left;
   }
   draw() {
     super.draw();
@@ -120,12 +127,15 @@ class SoulSand extends Obstacle {
     return super.isPassiveActive(Snake_cells);
   }
   effect() {}
+  updateTimer() {}
 }
 
 class BlueIce extends Obstacle {
-  constructor(name, row, column, speedbuff) {
+  constructor(name, row, column, speedbuff, time_left = 10) {
     super(name, row, column);
     this.speedbuff = speedbuff;
+    this.eatable = false;
+    this.time_left = time_left;
   }
   draw() {
     super.draw();
@@ -137,18 +147,19 @@ class BlueIce extends Obstacle {
     return super.isPassiveActive(Snake_cells);
   }
   effect() {}
+  updateTimer() {}
 }
 // ====================================================================
 
 // FOOD_TYPE: [HEALTH, IMMUNITY(in ms), RELATIVE PROBABILITY, IMAGE SOURCE]
 // prettier-ignore
 const FOOD_ITEMS = new Map([
-  ["APPLE", new Food("APPLE", 1, 0, 0.4, "../assets/apple.png")],
-  ["CARROT", new Food("CARROT", 1, 0, 0.3, "../assets/carrot.png")],
-  ["PUMPKIN_PIE", new Food("PUMPKIN_PIE", 4, 0, 0.18, "../assets/pumpkin_pie.png")],
-  ["GOLDEN_CARROT",new Food("GOLDEN_CARROT", 5, 5000, 0.09, "../assets/golden_carrot.png")],
-  ["GOLDEN_APPLE",new Food("GOLDEN_APPLE", 5, 7000, 0.029, "../assets/golden_apple.png")],
-  ["ENCHANTED_APPLE",new Food("ENCHANTED_APPLE",10,10000,0.001,"../assets/enchanted_apple.png")],
+  ["APPLE", new Food("APPLE", 1, 0, 0.4, "/static/assets/apple.png")],
+  ["CARROT", new Food("CARROT", 1, 0, 0.3, "/static/assets/carrot.png")],
+  ["PUMPKIN_PIE", new Food("PUMPKIN_PIE", 4, 0, 0.18, "/static/assets/pumpkin_pie.png")],
+  ["GOLDEN_CARROT",new Food("GOLDEN_CARROT", 5, 5000, 0.09, "/static/assets/golden_carrot.png")],
+  ["GOLDEN_APPLE",new Food("GOLDEN_APPLE", 5, 7000, 0.029, "/static/assets/golden_apple.png")],
+  ["ENCHANTED_APPLE",new Food("ENCHANTED_APPLE",10,10000,0.001,"/static/assets/enchanted_apple.png")],
 ]);
 
 // PROBABLITY OF SPAWNING STORED
@@ -280,11 +291,11 @@ function ObstacleSpawns() {
             else if(obstacle == "LAVA")
               Obstacle_cells.push(new Lava(obstacle, i, j));
             else if(obstacle == "MAGMA")
-              Obstacle_cells.push(new Magma(obstacle, i , j, 0.5));
+              Obstacle_cells.push(new Magma(obstacle, i , j, 0.5, 10));
             else if(obstacle == "SOUL_SAND")
-              Obstacle_cells.push(new SoulSand(obstacle, i , j, 2));
+              Obstacle_cells.push(new SoulSand(obstacle, i , j, 2, 10));
             else if(obstacle == "BLUE_ICE")
-              Obstacle_cells.push(new BlueIce(obstacle, i , j, 0.5));
+              Obstacle_cells.push(new BlueIce(obstacle, i , j, 0.5, 10));
           } 
       }
 
@@ -349,16 +360,16 @@ function LoadImages() {
   obstaclefiles.forEach((file) => {
     let name = file.split(".");
     let img = new Image();
-    img.src = `../assets/${file}`;
+    img.src = `/static/assets/${file}`;
     name = name[0].toUpperCase();
     img.onload = () => {
       IMAGES.set(name, img);
     };
   });
   let SnakeBodyImg = new Image();
-  SnakeBodyImg.src = "../assets/SnakeBody.png";
+  SnakeBodyImg.src = "/static/assets/SnakeBody.png";
   let SnakeHeadImg = new Image();
-  SnakeHeadImg.src = "../assets/SnakeHead.png";
+  SnakeHeadImg.src = "/static/assets/SnakeHead.png";
   SnakeHeadImg.onload = () => {
     IMAGES.set("SNAKE_HEAD", SnakeHeadImg);
   };
