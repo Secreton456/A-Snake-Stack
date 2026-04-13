@@ -274,7 +274,9 @@ function FoodSpawns() {
       for (let [food, value] of FOOD_ITEMS) {
         //prettier-ignore
         if (Math.random() < (0.5 * value.probability) / (e ** (Food_cells.length ** 1) * 6))
-          if(Food_cells.find(cell => (cell.x == i && cell.y == j))===undefined)
+          if(Food_cells.find(cell => (cell.x == i && cell.y == j))===undefined
+          && Snake_cells.find(cell => (cell.row == i  && cell.column == j))=== undefined
+          && Obstacle_cells.find(cell => (cell.row == i && cell.column == j))===undefined)
             Food_cells[Food_cells.length] = { x: i, y: j, type: food };
       }
 
@@ -299,7 +301,9 @@ function ObstacleSpawns() {
     for (let j = 1; j <= CANVAS_HEIGHT / GRID_WIDTH; j++)
       for (let [obstacle, value] of OBSTACLE_ITEMS) {
         if(Math.random() < (0.05 * value) / (e ** (Obstacle_cells.length ** 1) * 6))
-          if(Obstacle_cells.find(cell => (cell.row == i && cell.column == j))===undefined){
+          if(Obstacle_cells.find(cell => (cell.row == i && cell.column == j))===undefined
+          && Snake_cells.find(cell => (cell.row == i  && cell.column == j))=== undefined
+          && Food_cells.find(cell => (cell.x == i && cell.y == j))===undefined){
             if(obstacle == "ROTTEN_FLESH")
               Obstacle_cells.push(new RottenFlesh(obstacle, i, j, 0.5));
             else if(obstacle == "LAVA")
