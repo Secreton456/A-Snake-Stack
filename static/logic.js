@@ -12,7 +12,8 @@ let snakemovementrate = basemovementrate;
 const e = 2.718;
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
-let poisontime = 0; //
+let poisontime = 0;
+let count = 0;
 // ========================== Game Classes ============================
 class Food {
   constructor(name, health, immunity, probability, img_src) {
@@ -193,7 +194,6 @@ const DEATH_MESSAGES = new Map([
 
 let Running = false;
 let Begin = true;
-let interval = 0;
 let inEndScreen = false;
 let inHomeScreen = true;
 let Difficulty = "NONE";
@@ -221,6 +221,7 @@ function initiate_game_variables() {
   inStateOfEating = false; // True when the snake head coincides with a food item
   immuneDuration = 0; // in ms
   poisontime = 0;
+  count = 0;
   // Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
   snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
   snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
@@ -480,6 +481,7 @@ document.addEventListener("keydown", (event) => {
       .getElementById("overlay-homescreen")
       .style.setProperty("display", "none");
     Running = true;
+    requestAnimationFrame(gameLoop);
   } else if (event.key == "Enter" && inEndScreen == true) {
     start();
     inEndScreen = false;
@@ -488,9 +490,8 @@ document.addEventListener("keydown", (event) => {
     inEndScreen = false;
   } else if ((event.key == "H" || event.key == "h") && inHomeScreen == true) {
     Difficulty = "HARD";
-  } else if ((event.key == "E" || event.key == "e") && inHomeScreen) {
+  } else if ((event.key == "E" || event.key == "e") && inHomeScreen == true) {
     Difficulty = "EASY";
-    requestAnimationFrame(gameLoop);
   } else if (event.key == "Backspace") {
     document.getElementById("Difficulty").style.setProperty("display", "none");
     document
@@ -508,8 +509,13 @@ function SnakeMovement() {
 }
 
 function updateTimers() {
+  if (count < 4) {
+    count++;
+  } else {
+    count = 0;
+  }
   for (let obstacle of Obstacle_cells) {
-    obstacle.time_left -= 1000;
+    obstacle.time_left -= 250;
     if (obstacle.time_left <= 0) {
       let index = Obstacle_cells.findIndex(
         (obj) => obj.row == obstacle.row && obj.column == obstacle.column,
@@ -517,12 +523,13 @@ function updateTimers() {
       Obstacle_cells.splice(index, 1);
     }
   }
-  immuneDuration -= 1000;
+  immuneDuration -= 250;
   immuneDuration = Math.max(0, immuneDuration);
-  if (poisontime > 0) {
+  if (poisontime > 0 && count == 0) {
     if (immuneDuration == 0) {
       snakeHealth -= 1;
     }
+    snakeHealth = Math.max(0, snakeHealth);
     poisontime -= 1000;
     poisontime = Math.max(0, poisontime);
   }
@@ -570,7 +577,6 @@ function checkdeath() {
       snake_column <= -1 ||
       snake_column >= CANVAS_HEIGHT / GRID_WIDTH + 1
     ) {
-      inEndScreen = true;
       EndScreen("WALL");
     }
     //checking for bumping with itself
@@ -580,7 +586,6 @@ function checkdeath() {
           Snake_cells[i].x === snake_row &&
           Snake_cells[i].y === snake_column
         ) {
-          inEndScreen = true;
           EndScreen("BODY");
           return;
         }
@@ -590,6 +595,7 @@ function checkdeath() {
 }
 
 function EndScreen(cause) {
+  inEndScreen = true;
   Running = false;
   EndScore = document.getElementById("EndScore");
   EndScore.innerHTML =
@@ -625,7 +631,7 @@ LoadImages();
 
 function gameLoop(timeStamp) {
   if (Running) {
-    if (timeStamp - lasttimerupdate >= 1000) {
+    if (timeStamp - lasttimerupdate >= 250) {
       updateTimers();
       lasttimerupdate = timeStamp;
     }
@@ -668,8 +674,6 @@ function gameLoop(timeStamp) {
 }
 //prettier-ignore
 function home() {
-  clearInterval(interval);
-  Running = false;
   document.getElementById("Canvas").style.setProperty("display", "none")
   document.getElementById("overlay-endscreen").style.setProperty("display", "none");
   document.getElementById("Difficulty").style.setProperty("display", "flex");
