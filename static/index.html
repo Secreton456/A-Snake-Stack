@@ -14,7 +14,7 @@
   <body>
     <div id="ScoreBoard"></div>
     <div id="overlay-homescreen">
-      <div id="modal-popup">
+      <div id="home-popup">
         <img src="/static/assets/Homescreen_img.png" id="modal-img" />
         <p id="resume-screen-instructions">Press ENTER to Resume</p>
         <div id="username-text">
@@ -30,7 +30,109 @@
           <button class="diff-btn" id="Easy">Easy</button>
           <button class="diff-btn" id="Difficult">Hard</button>
         </div>
-        <div><button>Rules</button></div>
+        <div>
+          <button id="Rules">Rules</button>
+        </div>
+      </div>
+      <div id="rules-popup">
+        <h2 class="header">Rules</h2>
+
+        <ol>
+          <li>
+            Use the arrow keys or WASD keys to move the snake around the board
+            and eat the food.
+          </li>
+          <br />
+          <li>
+            Each time the snake eats food, it grows longer by 1 cell, its health
+            increases.
+          </li>
+          <br />
+          <li>
+            <table>
+              <th>Food</th>
+              <th>Health</th>
+              <th>Immunity</th>
+              <tr>
+                <td>Apple</td>
+                <td>+1</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Pumpkin pie</td>
+                <td>+4</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Golden Carrot</td>
+                <td>+5</td>
+                <td>5s</td>
+              </tr>
+              <tr>
+                <td>Golden Apple</td>
+                <td>+5</td>
+                <td>7s</td>
+              </tr>
+              <tr>
+                <td>Enchanted Golden Apple</td>
+                <td>+10</td>
+                <td>10s</td>
+              </tr>
+            </table>
+          </li>
+          <br />
+          <li>
+            <span style="color: red">Walls</span> are instant death
+            <br />
+            They stop you if immune. (take a different direction!).
+          </li>
+          <br />
+          <li>
+            Bumping into your <span style="color: red">own body</span> is an
+            instant death, but you will pass through if you have immunity.
+          </li>
+          <br />
+          <li>
+            <span style="color: orange">Lava</span> is instant death, unless you
+            have immunity.
+          </li>
+          <br />
+          <li>
+            <span style="color: yellowgreen">Rotten flesh</span> will decrease
+            your health by 1 for 5 seconds unless you have immunity.
+          </li>
+          <br />
+          <li>
+            <span style="color: rgb(240, 72, 6)">Magma</span> decreases your
+            health by 0.5 for every contact unless you have immunity.
+          </li>
+          <br />
+          <li>
+            <span style="color: burlywood">Soul Sand</span>,<span
+              style="color: rgb(8, 144, 197)"
+              >Blue Ice</span
+            >
+            give a speed buff of 0.5x,2x respectively.
+          </li>
+          <li>
+            <table>
+              <th>Final Score</th>
+              <th>Status</th>
+              <tr>
+                <td>&lt 20</td>
+                <td style="color: cyan">Coughing Baby</td>
+              </tr>
+              <tr>
+                <td>20-100</td>
+                <td style="color: rgb(5, 89, 245)">Hydrogen Baby</td>
+              </tr>
+              <tr>
+                <td>&gt 100</td>
+                <td style="color: rgb(157, 0, 255)">Hydrogen Bomb</td>
+              </tr>
+            </table>
+          </li>
+        </ol>
       </div>
     </div>
     <div id="overlay-endscreen">

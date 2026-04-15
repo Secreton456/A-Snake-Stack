@@ -14,6 +14,7 @@ canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
 let poisontime = 0;
 let count = 0;
+let gametime = 0;
 // ========================== Game Classes ============================
 class Food {
   constructor(name, health, immunity, probability, img_src) {
@@ -198,6 +199,7 @@ let inEndScreen = false;
 let inHomeScreen = true;
 let Difficulty = "NONE";
 let username = undefined;
+let showRules = false;
 
 // ========================== Game Variables ==========================
 let curDir = 1;
@@ -223,6 +225,7 @@ function initiate_game_variables() {
   immuneDuration = 0; // in ms
   poisontime = 0;
   count = 0;
+  gametime = 0;
   // Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
   snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
   snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
@@ -450,13 +453,31 @@ function LoadImages() {
 document.getElementById("Easy").addEventListener("click", () => {
   Difficulty = "EASY";
   username = document.getElementById("username").value;
-  start();
+  if (username.trim() === "") {
+    alert("Please enter a username to start the game.");
+    return;
+  } else start();
 });
 document.getElementById("Difficult").addEventListener("click", () => {
   Difficulty = "HARD";
   username = document.getElementById("username").value;
-  start();
+  if (username.trim() === "") {
+    alert("Please enter a username to start the game.");
+    return;
+  } else start();
 });
+document.getElementById("Rules").addEventListener("click", () => {
+  if (!showRules) {
+    document
+      .getElementById("rules-popup")
+      .style.setProperty("display", "block");
+    showRules = true;
+  } else {
+    document.getElementById("rules-popup").style.setProperty("display", "none");
+    showRules = false;
+  }
+});
+
 //prettier-ignore
 document.addEventListener("keydown", (event) => {
   if (
@@ -506,6 +527,7 @@ function SnakeMovement() {
 }
 
 function updateTimers() {
+  gametime += 250;
   if (count < 4) {
     count++;
   } else {
@@ -603,12 +625,25 @@ function EndScreen(cause) {
     "<br>" +
     "<text class='header' style='color: aliceblue;'>" +
     DEATH_MESSAGES.get(cause) +
+    "</text>" +
+    "<text class='header' style='color: aliceblue;'>cause: " +
+    "<span style='color: red;'>" +
+    cause +
+    "</span>" +
     "</text>";
   EndScore.innerHTML +=
     "<br>" +
     "<text class='header' style='color: aliceblue;'>Final Score:" +
     snakeHealth +
-    "</text>";
+    "</text>" +
+    "<br>" +
+    "<text class='header' style='color: aliceblue; font-size: 13px;'>Timestamp: " +
+    new Date().toLocaleString() +
+    "</text>" +
+    "<br>" +
+    "<text class='header' style='color: aliceblue;'>Time Survived: " +
+    (gametime / 1000).toFixed(2) +
+    "s</text>";
   if (snakeHealth < 20) {
     EndScore.innerHTML +=
       "<br>" +
