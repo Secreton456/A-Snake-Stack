@@ -5,9 +5,14 @@ let GRID_WIDTH = 32;
 const CANVAS_WIDTH = 1280;
 const CANVAS_HEIGHT = 832;
 let GAME_FRAME_RATE = 10;
+let basemovementrate = 1000 / GAME_FRAME_RATE;
+let lastRenderTime = 0;
+let lasttimerupdate = 0;
+let snakemovementrate = basemovementrate;
 const e = 2.718;
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
+let poisontime = 0; //
 // ========================== Game Classes ============================
 class Food {
   constructor(name, health, immunity, probability, img_src) {
@@ -57,9 +62,10 @@ class Obstacle {
 }
 
 class RottenFlesh extends Obstacle {
-  constructor(name, row, column, damage_per_frame) {
+  constructor(name, row, column, damage_per_frame, time_left = 10000) {
     super(name, row, column);
     this.damage_per_frame = damage_per_frame;
+    this.time_left = time_left;
   }
   draw() {
     super.draw();
@@ -70,13 +76,16 @@ class RottenFlesh extends Obstacle {
   isPassiveActive(Snake_cells) {
     return false;
   }
-  effect() {}
+  effect(snakeHealth) {
+    poisontime = Math.max(poisontime, 5000); //
+    return snakeHealth;
+  }
 }
 
 class Lava extends Obstacle {
-  constructor(name, row, column) {
+  constructor(name, row, column, time_left = 10000) {
     super(name, row, column);
-    this.eatable = false;
+    this.time_left = time_left;
   }
   draw() {
     super.draw();
@@ -87,11 +96,13 @@ class Lava extends Obstacle {
   isPassiveActive(Snake_cells) {
     return false;
   }
-  effect() {}
+  effect(snakeHealth) {
+    EndScreen("LAVA");
+  }
 }
 
 class Magma extends Obstacle {
-  constructor(name, row, column, damage_per_frame, time_left = 10) {
+  constructor(name, row, column, damage_per_frame, time_left = 10000) {
     super(name, row, column);
     this.damage_per_frame = damage_per_frame;
     this.eatable = false;
@@ -106,12 +117,14 @@ class Magma extends Obstacle {
   isPassiveActive(Snake_cells) {
     return super.isPassiveActive(Snake_cells);
   }
-  effect() {}
-  updateTimer() {}
+  effect(snakeHealth) {
+    snakeHealth -= Math.min(snakeHealth, this.damage_per_frame);
+    return snakeHealth;
+  }
 }
 
 class SoulSand extends Obstacle {
-  constructor(name, row, column, speedbuff, time_left = 10) {
+  constructor(name, row, column, speedbuff, time_left = 10000) {
     super(name, row, column);
     this.speedbuff = speedbuff;
     this.eatable = false;
@@ -126,12 +139,10 @@ class SoulSand extends Obstacle {
   isPassiveActive(Snake_cells) {
     return super.isPassiveActive(Snake_cells);
   }
-  effect() {}
-  updateTimer() {}
 }
 
 class BlueIce extends Obstacle {
-  constructor(name, row, column, speedbuff, time_left = 10) {
+  constructor(name, row, column, speedbuff, time_left = 10000) {
     super(name, row, column);
     this.speedbuff = speedbuff;
     this.eatable = false;
@@ -146,8 +157,6 @@ class BlueIce extends Obstacle {
   isPassiveActive(Snake_cells) {
     return super.isPassiveActive(Snake_cells);
   }
-  effect() {}
-  updateTimer() {}
 }
 // ====================================================================
 
@@ -176,6 +185,8 @@ const IMAGES = new Map();
 const DEATH_MESSAGES = new Map([
   ["WALL", "Ouch, theres a wall for a reason man!"],
   ["BODY", "Ah! Having a long body has its own problems</text>"],
+  ["LAVA", "Ah! Lava is hot, who knew?"],
+  ["ZERO_HEALTH", "I feel so weak, I just died of zero health!"],
 ]);
 
 // =====================================================================
@@ -209,6 +220,7 @@ function initiate_game_variables() {
   snakeHealth = 1;
   inStateOfEating = false; // True when the snake head coincides with a food item
   immuneDuration = 0; // in ms
+  poisontime = 0;
   // Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
   snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
   snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
@@ -223,7 +235,7 @@ function UpdateCanvas() {
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   // Drawing the vertical lines
-  for (let i = 1; i <= CANVAS_WIDTH / GRID_WIDTH; i++) {
+  for (let i = 0; i <= CANVAS_WIDTH / GRID_WIDTH; i++) {
     ctx.beginPath();
     ctx.moveTo(i * GRID_WIDTH, 0);
     ctx.lineTo(i * GRID_WIDTH, CANVAS_HEIGHT);
@@ -232,7 +244,7 @@ function UpdateCanvas() {
   }
 
   // Drawing the horizontal lines
-  for (let i = 1; i <= CANVAS_HEIGHT / GRID_WIDTH; i++) {
+  for (let i = 0; i <= CANVAS_HEIGHT / GRID_WIDTH; i++) {
     ctx.beginPath();
     ctx.moveTo(0, i * GRID_WIDTH);
     ctx.lineTo(CANVAS_WIDTH, i * GRID_WIDTH);
@@ -242,10 +254,12 @@ function UpdateCanvas() {
 }
 
 // Changes the Snake_cells array based on the movement and eating of food
-function UpdateSnake() {
+function MoveSnake() {
   if (!inStateOfEating) Snake_cells.pop(); // removes the last cell if not eating food
   Snake_cells.unshift({ x: snake_row, y: snake_column }); // adds the current snake head at the front to the list
-  // Draws all the snake cells
+}
+
+function DrawSnake() {
   Snake_cells.forEach((snakeCell, index) => {
     if (index === 0) {
       //head
@@ -268,17 +282,16 @@ function UpdateSnake() {
     }
   });
 }
-
 // Spawning Food Logic
 function FoodSpawns() {
   // The probability of food spawning set to be inversely proportional to the exponent of the present number of food slots.
-  for (let i = 1; i <= CANVAS_WIDTH / GRID_WIDTH; i++)
-    for (let j = 1; j <= CANVAS_HEIGHT / GRID_WIDTH; j++)
+  for (let i = 0; i < CANVAS_WIDTH / GRID_WIDTH; i++)
+    for (let j = 0; j < CANVAS_HEIGHT / GRID_WIDTH; j++)
       for (let [food, value] of FOOD_ITEMS) {
         //prettier-ignore
         if (Math.random() < (0.5 * value.probability) / (e ** (Food_cells.length ** 1) * 6))
           if(Food_cells.find(cell => (cell.x == i && cell.y == j))===undefined
-          && Snake_cells.find(cell => (cell.row == i  && cell.column == j))=== undefined
+          && Snake_cells.find(cell => (cell.x == i  && cell.y == j))=== undefined
           && Obstacle_cells.find(cell => (cell.row == i && cell.column == j))===undefined)
             Food_cells[Food_cells.length] = { x: i, y: j, type: food };
       }
@@ -300,23 +313,23 @@ function FoodSpawns() {
 
 function ObstacleSpawns() {
   //prettier-ignore
-  for (let i = 1; i <= CANVAS_WIDTH / GRID_WIDTH; i++)
-    for (let j = 1; j <= CANVAS_HEIGHT / GRID_WIDTH; j++)
+  for (let i = 0; i < CANVAS_WIDTH / GRID_WIDTH; i++)
+    for (let j = 0; j < CANVAS_HEIGHT / GRID_WIDTH; j++)
       for (let [obstacle, value] of OBSTACLE_ITEMS) {
         if(Math.random() < (0.05 * value) / (e ** (Obstacle_cells.length ** 1) * 6))
           if(Obstacle_cells.find(cell => (cell.row == i && cell.column == j))===undefined
-          && Snake_cells.find(cell => (cell.row == i  && cell.column == j))=== undefined
+          && Snake_cells.find(cell => (cell.x == i  && cell.y == j))=== undefined
           && Food_cells.find(cell => (cell.x == i && cell.y == j))===undefined){
             if(obstacle == "ROTTEN_FLESH")
               Obstacle_cells.push(new RottenFlesh(obstacle, i, j, 0.5));
             else if(obstacle == "LAVA")
               Obstacle_cells.push(new Lava(obstacle, i, j));
             else if(obstacle == "MAGMA")
-              Obstacle_cells.push(new Magma(obstacle, i , j, 0.5, 10));
+              Obstacle_cells.push(new Magma(obstacle, i , j, 0.5));
             else if(obstacle == "SOUL_SAND")
-              Obstacle_cells.push(new SoulSand(obstacle, i , j, 2, 10));
+              Obstacle_cells.push(new SoulSand(obstacle, i , j, 0.5));
             else if(obstacle == "BLUE_ICE")
-              Obstacle_cells.push(new BlueIce(obstacle, i , j, 0.5, 10));
+              Obstacle_cells.push(new BlueIce(obstacle, i , j, 2));
           } 
       }
 
@@ -346,19 +359,47 @@ function EatFood() {
 }
 //----------------------------------------------------
 
-function PassObstacles() {
+function PassObstacles_type1() {
   for (let obstacle of Obstacle_cells) {
-    if (obstacle.isActive(Snake_cells)) {
-      let index = Obstacle_cells.findIndex(
-        (obj) => obj.row == obstacle.row && obj.column == obstacle.column,
-      );
-      obstacle.effect();
-      Obstacle_cells.splice(index, 1);
-    }
-    if (obstacle.isPassiveActive(Snake_cells)) {
-      obstacle.effect();
+    if (
+      obstacle instanceof RottenFlesh ||
+      obstacle instanceof Lava ||
+      obstacle instanceof Magma
+    ) {
+      if (obstacle.isActive(Snake_cells)) {
+        let index = Obstacle_cells.findIndex(
+          (obj) => obj.row == obstacle.row && obj.column == obstacle.column,
+        );
+        if (obstacle instanceof RottenFlesh) {
+          if (immuneDuration == 0) {
+            snakeHealth = obstacle.effect(snakeHealth);
+          }
+        } else {
+          if (immuneDuration == 0) {
+            obstacle.effect(snakeHealth);
+          }
+        }
+        Obstacle_cells.splice(index, 1);
+      }
+      if (obstacle.isPassiveActive(Snake_cells)) {
+        if (immuneDuration == 0) {
+          snakeHealth = obstacle.effect(snakeHealth);
+        }
+      }
     }
   }
+}
+
+function PassObstacles_type2() {
+  let speedmultiplier = 1;
+  for (let obstacle of Obstacle_cells) {
+    if (obstacle instanceof SoulSand || obstacle instanceof BlueIce) {
+      if (obstacle.isPassiveActive(Snake_cells)) {
+        speedmultiplier = speedmultiplier * obstacle.speedbuff;
+      }
+    }
+  }
+  snakemovementrate = basemovementrate / speedmultiplier;
 }
 
 function UpdateScoreBoard() {
@@ -449,6 +490,7 @@ document.addEventListener("keydown", (event) => {
     Difficulty = "HARD";
   } else if ((event.key == "E" || event.key == "e") && inHomeScreen) {
     Difficulty = "EASY";
+    requestAnimationFrame(gameLoop);
   } else if (event.key == "Backspace") {
     document.getElementById("Difficulty").style.setProperty("display", "none");
     document
@@ -465,9 +507,25 @@ function SnakeMovement() {
   else snake_row--;
 }
 
-function updateImmunity() {
-  if (immuneDuration >= 1000 / GAME_FRAME_RATE)
-    immuneDuration -= 1000 / GAME_FRAME_RATE;
+function updateTimers() {
+  for (let obstacle of Obstacle_cells) {
+    obstacle.time_left -= 1000;
+    if (obstacle.time_left <= 0) {
+      let index = Obstacle_cells.findIndex(
+        (obj) => obj.row == obstacle.row && obj.column == obstacle.column,
+      );
+      Obstacle_cells.splice(index, 1);
+    }
+  }
+  immuneDuration -= 1000;
+  immuneDuration = Math.max(0, immuneDuration);
+  if (poisontime > 0) {
+    if (immuneDuration == 0) {
+      snakeHealth -= 1;
+    }
+    poisontime -= 1000;
+    poisontime = Math.max(0, poisontime);
+  }
 }
 
 function start() {
@@ -482,6 +540,8 @@ function start() {
   }
   if (Difficulty != "NONE") {
     if (Begin) {
+      basemovementrate = 1000 / GAME_FRAME_RATE;
+      snakemovementrate = basemovementrate;
       initiate_game_variables();
       Begin = false;
       document
@@ -492,12 +552,16 @@ function start() {
         .style.setProperty("display", "none");
       Running = true;
     }
-    interval = setInterval(gameLoop, 1000 / GAME_FRAME_RATE);
+    requestAnimationFrame(gameLoop);
   }
 }
 
 function checkdeath() {
   // Checks for death only when not immune
+  if (snakeHealth <= 0) {
+    EndScreen("ZERO_HEALTH");
+    return;
+  }
   if (immuneDuration == 0) {
     //checking for bumping with wall
     if (
@@ -511,23 +575,21 @@ function checkdeath() {
     }
     //checking for bumping with itself
     if (snakeLength > 1) {
-      Snake_cells.forEach((snakeCell, index) => {
+      for (let i = 1; i < Snake_cells.length; i++) {
         if (
-          index != 0 &&
-          snakeCell.x === snake_row &&
-          snakeCell.y === snake_column
+          Snake_cells[i].x === snake_row &&
+          Snake_cells[i].y === snake_column
         ) {
           inEndScreen = true;
           EndScreen("BODY");
           return;
         }
-      });
+      }
     }
   }
 }
 
 function EndScreen(cause) {
-  clearInterval(interval);
   Running = false;
   EndScore = document.getElementById("EndScore");
   EndScore.innerHTML =
@@ -561,21 +623,49 @@ function EndScreen(cause) {
 
 LoadImages();
 
-function gameLoop() {
+function gameLoop(timeStamp) {
   if (Running) {
-    updateImmunity();
-    checkdeath();
+    if (timeStamp - lasttimerupdate >= 1000) {
+      updateTimers();
+      lasttimerupdate = timeStamp;
+    }
     UpdateCanvas();
-    FoodSpawns();
+    if (timeStamp - lastRenderTime > snakemovementrate) {
+      let prev_row = snake_row;
+      let prev_column = snake_column;
+      SnakeMovement();
+      let hitwall =
+        snake_row < 0 ||
+        snake_row >= CANVAS_WIDTH / GRID_WIDTH ||
+        snake_column < 0 ||
+        snake_column >= CANVAS_HEIGHT / GRID_WIDTH;
+      if (hitwall) {
+        if (immuneDuration > 0) {
+          snake_row = prev_row;
+          snake_column = prev_column;
+        } else {
+          EndScreen("WALL");
+          return;
+        }
+      }
+      EatFood();
+      if (!hitwall || immuneDuration <= 0) {
+        MoveSnake();
+      }
+      PassObstacles_type1();
+      lastRenderTime = timeStamp;
+    }
+    DrawSnake();
     ObstacleSpawns();
-    UpdateSnake();
-    SnakeMovement();
-    EatFood();
-    PassObstacles();
+    FoodSpawns();
+
+    PassObstacles_type2();
     UpdateScoreBoard();
+    checkdeath();
+
+    requestAnimationFrame(gameLoop);
   }
 }
-
 //prettier-ignore
 function home() {
   clearInterval(interval);
