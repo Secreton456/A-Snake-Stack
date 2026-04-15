@@ -183,6 +183,9 @@ const DEATH_MESSAGES = new Map([
 let Running = false;
 let Begin = true;
 let interval = 0;
+let inEndScreen = false;
+let inHomeScreen = true;
+let Difficulty = "NONE";
 
 // ========================== Game Variables ==========================
 let curDir = 1;
@@ -361,7 +364,12 @@ function PassObstacles() {
 function UpdateScoreBoard() {
   ScoreCard = document.getElementById("ScoreBoard");
   ScoreCard.innerHTML =
-    "<text class='header' style='color: red;'>Score:" + snakeHealth + "</text>"; // Display SnakeHealth
+    "<h1 class='header'>Score: " +
+    snakeHealth.toString().padStart(3, "0") +
+    " Immunity: " +
+    (immuneDuration / 1000).toFixed(2) +
+    "s" +
+    "</h1>"; // Display SnakeHealth
 }
 
 function LoadImages() {
@@ -396,6 +404,15 @@ function LoadImages() {
   };
 }
 
+document.getElementById("Easy").addEventListener("click", () => {
+  Difficulty = "EASY";
+  start();
+});
+document.getElementById("Difficult").addEventListener("click", () => {
+  Difficulty = "HARD";
+  start();
+});
+
 document.addEventListener("keydown", (event) => {
   if (
     (event.key == "ArrowUp" || event.key == "w" || event.key == "W") &&
@@ -422,6 +439,16 @@ document.addEventListener("keydown", (event) => {
       .getElementById("overlay-homescreen")
       .style.setProperty("display", "none");
     Running = true;
+  } else if (event.key == "Enter" && inEndScreen == true) {
+    start();
+    inEndScreen = false;
+  } else if ((event.key == "H" || event.key == "h") && inEndScreen == true) {
+    home();
+    inEndScreen = false;
+  } else if ((event.key == "H" || event.key == "h") && inHomeScreen == true) {
+    Difficulty = "HARD";
+  } else if ((event.key == "E" || event.key == "e") && inHomeScreen) {
+    Difficulty = "EASY";
   } else if (event.key == "Backspace") {
     document.getElementById("Difficulty").style.setProperty("display", "none");
     document
@@ -444,22 +471,16 @@ function updateImmunity() {
 }
 
 function start() {
-  let Difficulty = "NONE";
-  if (document.getElementById("Difficult").checked == true)
-    Difficulty = "DIFFICULT";
-  else if (document.getElementById("Easy").checked == true) Difficulty = "EASY";
-  if (Difficulty == "DIFFICULT") {
+  document.getElementById("Canvas").style.display = "block";
+
+  if (Difficulty == "HARD") {
     GRID_WIDTH = 32;
     GAME_FRAME_RATE = 10;
   } else if (Difficulty == "EASY") {
     GRID_WIDTH = 64;
     GAME_FRAME_RATE = 5;
-  } else {
-    document.getElementById("errormsg").innerHTML =
-      "<text class='header' style='color: red;'>Please select a difficulty level to start the game</text>";
   }
   if (Difficulty != "NONE") {
-    document.getElementById("errormsg").innerHTML = "";
     if (Begin) {
       initiate_game_variables();
       Begin = false;
@@ -485,6 +506,7 @@ function checkdeath() {
       snake_column <= -1 ||
       snake_column >= CANVAS_HEIGHT / GRID_WIDTH + 1
     ) {
+      inEndScreen = true;
       EndScreen("WALL");
     }
     //checking for bumping with itself
@@ -495,6 +517,7 @@ function checkdeath() {
           snakeCell.x === snake_row &&
           snakeCell.y === snake_column
         ) {
+          inEndScreen = true;
           EndScreen("BODY");
           return;
         }
@@ -555,6 +578,9 @@ function gameLoop() {
 
 //prettier-ignore
 function home() {
+  clearInterval(interval);
+  Running = false;
+  document.getElementById("Canvas").style.setProperty("display", "none")
   document.getElementById("overlay-endscreen").style.setProperty("display", "none");
   document.getElementById("Difficulty").style.setProperty("display", "flex");
   document.getElementById("overlay-homescreen").style.setProperty("display", "flex");

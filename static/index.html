@@ -12,34 +12,20 @@
   </head>
 
   <body>
+    <div id="ScoreBoard"></div>
     <div id="overlay-homescreen">
       <div id="modal-popup">
         <h2 class="header">Welcome to our MC ripoff snake game🐍</h2>
         <img src="/static/assets/Homescreen_img.png" id="modal-img" />
         <p class="header" style="color: aliceblue">SCOREBOARD</p>
-        <div id="ScoreBoard"></div>
+
         <div id="Difficulty">
           <p>Choose difficulty</p>
-          <label for="Easy"
-            ><input
-              type="radio"
-              id="Easy"
-              name="difficulty"
-              value="EASY"
-            />Easy</label
-          >
-          <label for="Difficult"
-            ><input
-              type="radio"
-              id="Difficult"
-              name="difficulty"
-              value="DIFFICULT"
-            />Difficult</label
-          >
-          <button type="submit" onclick="start()">Submit</button>
-          <p id="errormsg"></p>
+
+          <button class="diff-btn" id="Easy">Easy</button>
+          <button class="diff-btn" id="Difficult">Hard</button>
         </div>
-        <p class="header">press ENTER to RESUME in between.</p>
+        <p class="header">Press ENTER to RESUME in between.</p>
       </div>
     </div>
     <div id="overlay-endscreen">
@@ -47,7 +33,14 @@
         <h2 class="header" style="color: red"><b>GAME OVER</b></h2>
         <img src="/static/assets/Endscreen_img.png" id="end_modal-img" />
         <div id="EndScore"></div>
-        <button type="submit" onclick="home()">HOME</button>
+        <div id="endscreen-instructions">
+          <h5 class="header" style="color: yellowgreen">
+            Press ENTER to restart game
+          </h5>
+          <h5 class="header" style="color: yellowgreen">
+            Press H to go to homescreen
+          </h5>
+        </div>
       </div>
     </div>
     <div id="Canvas_container">

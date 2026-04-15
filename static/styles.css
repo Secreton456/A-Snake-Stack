@@ -9,7 +9,7 @@ h1 {
 }
 
 #Canvas {
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   margin: auto;
@@ -20,15 +20,19 @@ h1 {
   justify-content: center;
   align-items: center;
   font-weight: bold;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   color: #ffd54f;
-  text-shadow: 
+  margin-bottom: 15px;
+  line-height: 1.4;
+  text-shadow:
     2px 2px 0 #5a3e2b,
-    0 0 8px rgba(255,213,79,0.7); /* FOR SHINING EFFECT */
+    0 0 8px rgba(255, 213, 79, 0.7); /* FOR SHINING EFFECT */
 }
 
 body {
-  background-color: #140714;
+  background-image: url("assets/minecraft_bg.png");
+  background-size: cover;
+  background-repeat: no-repeat;
   margin: 0;
   padding: 0;
   height: 100%;
@@ -41,7 +45,7 @@ html {
   height: 100%;
 }
 /* FOR DIM OVERLAY ON SCREEN WHILE ON HOMESCREEN*/
-#overlay-homescreen{
+#overlay-homescreen {
   position: fixed;
   left: 0;
   top: 0;
@@ -54,24 +58,28 @@ html {
   align-items: center;
 }
 /* HOMESCREEN POPUP CSS */
-#modal-popup{
+#modal-popup {
   background-color: #2f4f2f;
-  width: 90%;
-  max-width: 420px;
   border-radius: 10px;
   padding: 20px;
+  border: 4px solid #3b3b3b;
+  padding: 25px;
+  width: 420px;
+  text-align: center;
+  box-shadow: 0 0 20px black;
 }
 /* IMG USED IN POPUP */
-#modal-img{
+#modal-img {
   width: 100%;
   max-width: 350px;
   height: auto;
+  object-fit: cover;
   display: block;
-  margin: 0 auto;
+  margin: 10px auto;
   border-radius: 10px;
 }
 
-#overlay-endscreen{
+#overlay-endscreen {
   position: fixed;
   left: 0;
   top: 0;
@@ -83,7 +91,7 @@ html {
   background-color: rgba(117, 117, 117, 0.5);
 }
 
-#end-popup{
+#end-popup {
   background-color: #2f4f2f;
   width: 90%;
   max-width: 420px;
@@ -91,11 +99,82 @@ html {
   padding: 20px;
 }
 
-#end_modal-img{
+#end_modal-img {
   width: 100%;
   max-width: 350px;
   height: auto;
   display: block;
   margin: 0 auto;
   border-radius: 10px;
+}
+
+#ScoreBoard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-family: "Press Start 2P", cursive;
+  color: #ffd54f;
+  text-shadow:
+    2px 2px 0 #5a3e2b,
+    0 0 8px rgba(255, 213, 79, 0.7); /* FOR SHINING EFFECT */
+}
+
+#Difficulty {
+  background: #1a1a1a;
+  padding: 15px;
+  border: 2px solid #444;
+}
+
+#Difficulty p {
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.diff-btn {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px;
+  background: #3b8526;
+  border: 3px solid #2a5c1a;
+  color: white;
+  font-family: "Press Start 2P", cursive;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.diff-btn:hover {
+  background: #4caf50;
+  transform: translateY(-2px);
+}
+
+.diff-btn:active {
+  transform: translateY(2px);
+  background: #2e7d32;
+}
+
+.diff-btn.active {
+  background: #2e7d32;
+  border-color: #1b3a10;
+  box-shadow: inset 0 0 10px black;
+}
+button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #6b3f1d;
+  border: 3px solid #4a2b12;
+  color: white;
+  cursor: pointer;
+  font-family: "Press Start 2P", cursive;
+  transition: 0.1s;
+}
+button:hover {
+  background: #8b5a2b;
+  transform: translateY(-2px);
+}
+#errormsg {
+  color: red;
+  margin-top: 10px;
+  font-size: 10px;
 }
