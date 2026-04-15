@@ -29,6 +29,38 @@ h1 {
     0 0 8px rgba(255, 213, 79, 0.7); /* FOR SHINING EFFECT */
 }
 
+#username-text {
+  background: #1a1a1a;
+  border: 4px solid #3cff00;
+  padding: 25px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  box-shadow: 6px 6px 0 #000;
+}
+#username-text label {
+  font-size: 10px;
+  color: #3cff00;
+  line-height: 1.6;
+}
+#username-text input {
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+  padding: 10px;
+  border: 3px solid #3cff00;
+  background: #000;
+  color: #3cff00;
+  outline: none;
+}
+#username-text input::placeholder {
+  color: #2a7f2a;
+}
+#username-text input:focus {
+  background: #001a00;
+  box-shadow: 0 0 10px #3cff00;
+}
+
 body {
   background-image: url("assets/minecraft_bg.png");
   background-size: cover;
@@ -173,8 +205,17 @@ button:hover {
   background: #8b5a2b;
   transform: translateY(-2px);
 }
-#errormsg {
-  color: red;
-  margin-top: 10px;
-  font-size: 10px;
+
+#resume-screen-instructions {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-family: "Press Start 2P", cursive;
+  color: #ffd54f;
+  margin-bottom: 15px;
+  line-height: 1.4;
+  text-shadow:
+    2px 2px 0 #5a3e2b,
+    0 0 8px rgba(255, 213, 79, 0.7); /* FOR SHINING EFFECT */
 }

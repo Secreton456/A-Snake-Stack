@@ -15,17 +15,22 @@
     <div id="ScoreBoard"></div>
     <div id="overlay-homescreen">
       <div id="modal-popup">
-        <h2 class="header">Welcome to our MC ripoff snake game🐍</h2>
         <img src="/static/assets/Homescreen_img.png" id="modal-img" />
-        <p class="header" style="color: aliceblue">SCOREBOARD</p>
-
+        <p id="resume-screen-instructions">Press ENTER to Resume</p>
+        <div id="username-text">
+          <label for="username">Enter Username</label>
+          <input
+            type="text"
+            id="username"
+            placeholder="Enter your username here"
+          />
+        </div>
         <div id="Difficulty">
-          <p>Choose difficulty</p>
-
+          <p class="header">Choose difficulty</p>
           <button class="diff-btn" id="Easy">Easy</button>
           <button class="diff-btn" id="Difficult">Hard</button>
         </div>
-        <p class="header">Press ENTER to RESUME in between.</p>
+        <div><button>Rules</button></div>
       </div>
     </div>
     <div id="overlay-endscreen">

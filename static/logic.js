@@ -197,6 +197,7 @@ let Begin = true;
 let inEndScreen = false;
 let inHomeScreen = true;
 let Difficulty = "NONE";
+let username = undefined;
 
 // ========================== Game Variables ==========================
 let curDir = 1;
@@ -322,15 +323,15 @@ function ObstacleSpawns() {
           && Snake_cells.find(cell => (cell.x == i  && cell.y == j))=== undefined
           && Food_cells.find(cell => (cell.x == i && cell.y == j))===undefined){
             if(obstacle == "ROTTEN_FLESH")
-              Obstacle_cells.push(new RottenFlesh(obstacle, i, j, 0.5));
+              Obstacle_cells.push(new RottenFlesh(obstacle, i, j, 0.5, 5000 + 5000*Math.random()));
             else if(obstacle == "LAVA")
-              Obstacle_cells.push(new Lava(obstacle, i, j));
+              Obstacle_cells.push(new Lava(obstacle, i, j,5000+5000*Math.random()));
             else if(obstacle == "MAGMA")
-              Obstacle_cells.push(new Magma(obstacle, i , j, 0.5));
+              Obstacle_cells.push(new Magma(obstacle, i , j, 0.5,5000+5000*Math.random()));
             else if(obstacle == "SOUL_SAND")
-              Obstacle_cells.push(new SoulSand(obstacle, i , j, 0.5));
+              Obstacle_cells.push(new SoulSand(obstacle, i , j, 0.5,5000+5000*Math.random()));
             else if(obstacle == "BLUE_ICE")
-              Obstacle_cells.push(new BlueIce(obstacle, i , j, 2));
+              Obstacle_cells.push(new BlueIce(obstacle, i , j, 2,5000+5000*Math.random()));
           } 
       }
 
@@ -448,13 +449,15 @@ function LoadImages() {
 
 document.getElementById("Easy").addEventListener("click", () => {
   Difficulty = "EASY";
+  username = document.getElementById("username").value;
   start();
 });
 document.getElementById("Difficult").addEventListener("click", () => {
   Difficulty = "HARD";
+  username = document.getElementById("username").value;
   start();
 });
-
+//prettier-ignore
 document.addEventListener("keydown", (event) => {
   if (
     (event.key == "ArrowUp" || event.key == "w" || event.key == "W") &&
@@ -477,9 +480,7 @@ document.addEventListener("keydown", (event) => {
   )
     curDir = 4;
   else if (event.key == "Enter" && Begin == false) {
-    document
-      .getElementById("overlay-homescreen")
-      .style.setProperty("display", "none");
+    document.getElementById("overlay-homescreen").style.setProperty("display", "none");
     Running = true;
     requestAnimationFrame(gameLoop);
   } else if (event.key == "Enter" && inEndScreen == true) {
@@ -488,15 +489,11 @@ document.addEventListener("keydown", (event) => {
   } else if ((event.key == "H" || event.key == "h") && inEndScreen == true) {
     home();
     inEndScreen = false;
-  } else if ((event.key == "H" || event.key == "h") && inHomeScreen == true) {
-    Difficulty = "HARD";
-  } else if ((event.key == "E" || event.key == "e") && inHomeScreen == true) {
-    Difficulty = "EASY";
-  } else if (event.key == "Backspace") {
+  } else if (event.key == "Backspace" && inHomeScreen == false) {
     document.getElementById("Difficulty").style.setProperty("display", "none");
-    document
-      .getElementById("overlay-homescreen")
-      .style.setProperty("display", "flex");
+    document.getElementById("overlay-homescreen").style.setProperty("display", "flex");
+    document.getElementById("username-text").style.display = "none";
+    document.getElementById("resume-screen-instructions").style.display = "flex";
     Running = false;
   }
 });
@@ -538,6 +535,7 @@ function updateTimers() {
 function start() {
   document.getElementById("Canvas").style.display = "block";
 
+  inEndScreen = false;
   if (Difficulty == "HARD") {
     GRID_WIDTH = 32;
     GAME_FRAME_RATE = 10;
@@ -560,6 +558,8 @@ function start() {
       Running = true;
     }
     requestAnimationFrame(gameLoop);
+
+    inHomeScreen = false;
   }
 }
 
@@ -595,6 +595,7 @@ function checkdeath() {
 }
 
 function EndScreen(cause) {
+  inHomeScreen = false;
   inEndScreen = true;
   Running = false;
   EndScore = document.getElementById("EndScore");
@@ -674,10 +675,13 @@ function gameLoop(timeStamp) {
 }
 //prettier-ignore
 function home() {
+  inHomeScreen = true;
   document.getElementById("Canvas").style.setProperty("display", "none")
   document.getElementById("overlay-endscreen").style.setProperty("display", "none");
+  document.getElementById("resume-screen-instructions").style.display = "none";
   document.getElementById("Difficulty").style.setProperty("display", "flex");
   document.getElementById("overlay-homescreen").style.setProperty("display", "flex");
+  document.getElementById("username-text").style.display = "flex";
   initiate_game_variables();
 }
 LoadImages();
