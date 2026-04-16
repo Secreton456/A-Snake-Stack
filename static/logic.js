@@ -663,6 +663,20 @@ function EndScreen(cause) {
   document
     .getElementById("overlay-endscreen")
     .style.setProperty("display", "flex");
+
+  fetch("http://127.0.0.1:5000/save_score", {
+    method: "POST",
+    body: JSON.stringify({
+      username: username,
+      score: snakeHealth,
+      cause: cause,
+      timeofDeath: new Date().toLocaleString(),
+      duration: (gametime / 1000).toFixed(2),
+    }),
+    headers: { "Content-type": "application/json; charset=UTF-8" },
+  })
+    .then((response) => response.json())
+    .then((json) => console.log(json));
   Begin = true;
 }
 
