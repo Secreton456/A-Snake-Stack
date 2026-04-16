@@ -447,15 +447,24 @@ function LoadImages() {
   };
 }
 
+function validateUserName() {
+  username = document.getElementById("username").value;
+  if (username == "") {
+    document.getElementById("errormsg").textContent =
+      "Username cannot be empty";
+    document.getElementById("errormsg").classList.add("show");
+  } else {
+    document.getElementById("errormsg").classList.remove("show");
+    start();
+  }
+}
 document.getElementById("Easy").addEventListener("click", () => {
   Difficulty = "EASY";
-  username = document.getElementById("username").value;
-  start();
+  validateUserName();
 });
 document.getElementById("Difficult").addEventListener("click", () => {
   Difficulty = "HARD";
-  username = document.getElementById("username").value;
-  start();
+  validateUserName();
 });
 //prettier-ignore
 document.addEventListener("keydown", (event) => {
@@ -676,7 +685,8 @@ function gameLoop(timeStamp) {
 //prettier-ignore
 function home() {
   inHomeScreen = true;
-  document.getElementById("Canvas").style.setProperty("display", "none")
+  document.getElementById("Canvas").style.setProperty("display", "none");
+  document.getElementById("username").value = "";
   document.getElementById("overlay-endscreen").style.setProperty("display", "none");
   document.getElementById("resume-screen-instructions").style.display = "none";
   document.getElementById("Difficulty").style.setProperty("display", "flex");

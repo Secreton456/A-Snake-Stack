@@ -220,3 +220,19 @@ button:hover {
     2px 2px 0 #5a3e2b,
     0 0 8px rgba(255, 213, 79, 0.7); /* FOR SHINING EFFECT */
 }
+.error {
+  background: #2b0f0f;
+  color: #ff4d4d;
+  border: 2px solid #ff1a1a;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: "Press Start 2P", cursive;
+  display: none;
+  margin-top: 10px;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+}
+
+.error.show {
+  display: block;
+}
