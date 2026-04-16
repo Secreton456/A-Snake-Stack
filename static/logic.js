@@ -453,18 +453,10 @@ function LoadImages() {
 document.getElementById("Easy").addEventListener("click", () => {
   Difficulty = "EASY";
   username = document.getElementById("username").value;
-  if (username.trim() === "") {
-    alert("Please enter a username to start the game.");
-    return;
-  } else start();
 });
 document.getElementById("Difficult").addEventListener("click", () => {
   Difficulty = "HARD";
   username = document.getElementById("username").value;
-  if (username.trim() === "") {
-    alert("Please enter a username to start the game.");
-    return;
-  } else start();
 });
 document.getElementById("Rules").addEventListener("click", () => {
   if (!showRules) {
