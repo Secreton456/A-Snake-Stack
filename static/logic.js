@@ -452,7 +452,7 @@ function LoadImages() {
 
 function validateUserName() {
   username = document.getElementById("username").value;
-  if (username == "") {
+  if (!username || username.trim().length == 0) {
     document.getElementById("errormsg").textContent =
       "Username cannot be empty";
     document.getElementById("errormsg").classList.add("show");

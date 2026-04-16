@@ -6,10 +6,6 @@ app = Flask(__name__)
 history = "history.txt"
 
 
-def convert_time(time):
-    pass
-
-
 @app.route("/")
 def serve_index():
     return send_from_directory("static", "index.html")
@@ -21,7 +17,7 @@ def get_score():
     print(data)
     with open(history, "a") as file:
         file.write(
-            f'[ {data["timeofDeath"]} | {data["username"]} | {data["score"]} | {data["cause"]} | {data["duration"]}s ]\n'
+            f'{data["timeofDeath"]}|{data["username"]}|{data["score"]}|{data["cause"]}|{data["duration"]}s\n'
         )
     return {"message": "received"}
 
