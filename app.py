@@ -1,6 +1,13 @@
 from flask import Flask, request, send_from_directory
+import json
+import time
 
 app = Flask(__name__)
+history = "history.txt"
+
+
+def convert_time(time):
+    pass
 
 
 @app.route("/")
@@ -12,7 +19,10 @@ def serve_index():
 def get_score():
     data = request.get_json()
     print(data)
-    print(type(data))
+    with open(history, "a") as file:
+        file.write(
+            f'[ {data["timeofDeath"]} | {data["username"]} | {data["score"]} | {data["cause"]} | {data["duration"]}s ]\n'
+        )
     return {"message": "received"}
 
 

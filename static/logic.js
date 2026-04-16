@@ -639,9 +639,6 @@ function EndScreen(cause) {
     "<text class='header' style='color: aliceblue;'>Final Score:" +
     snakeHealth +
     "</text>" +
-    "<br>" +
-    "<text class='header' style='color: aliceblue; font-size: 13px;'>Timestamp: " +
-    new Date().toLocaleString() +
     "</text>" +
     "<br>" +
     "<text class='header' style='color: aliceblue;'>Time Survived: " +
@@ -670,7 +667,16 @@ function EndScreen(cause) {
       username: username,
       score: snakeHealth,
       cause: cause,
-      timeofDeath: new Date().toLocaleString(),
+      timeofDeath: new Date().toLocaleString("en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+        timeZone: "UTC",
+      }),
       duration: (gametime / 1000).toFixed(2),
     }),
     headers: { "Content-type": "application/json; charset=UTF-8" },
