@@ -50,16 +50,19 @@ class Obstacle {
       GRID_WIDTH,
     );
   }
+  // checks if the snake head coincides with the obstacle
   isActive(Snake_cells) {
     if (Snake_cells[0].x == this.row && Snake_cells[0].y == this.column)
       return true;
   }
+  // checks if any part of the snake's body coincides with the obstacle
   isPassiveActive(Snake_cells) {
     for (let cell of Snake_cells) {
       if (cell.x == this.row && cell.y == this.column) return true;
     }
     return false;
   }
+  // effect function of each obstacle, runs when active or passive active depending on the obstacle
   effect() {}
 }
 
@@ -75,9 +78,11 @@ class RottenFlesh extends Obstacle {
   isActive(Snake_cells) {
     return super.isActive(Snake_cells);
   }
+  // set to be false
   isPassiveActive(Snake_cells) {
     return false;
   }
+  // sets poison time to a maximum of 5 seconds
   effect(snakeHealth) {
     poisontime = Math.max(poisontime, 5000); //
     return snakeHealth;
@@ -98,6 +103,7 @@ class Lava extends Obstacle {
   isPassiveActive(Snake_cells) {
     return false;
   }
+  // dies instanstly
   effect(snakeHealth) {
     EndScreen("LAVA");
   }
@@ -119,6 +125,7 @@ class Magma extends Obstacle {
   isPassiveActive(Snake_cells) {
     return super.isPassiveActive(Snake_cells);
   }
+  // damages the player every frame of the game when in contact with the player
   effect(snakeHealth) {
     snakeHealth -= Math.min(snakeHealth, this.damage_per_frame);
     return snakeHealth;
@@ -162,7 +169,7 @@ class BlueIce extends Obstacle {
 }
 // ====================================================================
 
-// FOOD_TYPE: [HEALTH, IMMUNITY(in ms), RELATIVE PROBABILITY, IMAGE SOURCE]
+// FOOD_TYPE: [NAME, HEALTH, IMMUNITY(in ms), RELATIVE PROBABILITY, IMAGE SOURCE]
 // prettier-ignore
 const FOOD_ITEMS = new Map([
   ["APPLE", new Food("APPLE", 1, 0, 0.4, "/static/assets/apple.png")],
@@ -181,7 +188,7 @@ const OBSTACLE_ITEMS = new Map([
   ["SOUL_SAND", 0.1],
   ["BLUE_ICE", 0.1],
 ]);
-// All the IMAGES from assets folder load and get stored here
+// All the IMAGES from assets folder load and get stored here after LoadImages() runs
 const IMAGES = new Map();
 // A  map of the death messages displayed after the game is over
 const DEATH_MESSAGES = new Map([
@@ -193,27 +200,27 @@ const DEATH_MESSAGES = new Map([
 
 // =====================================================================
 
-let Running = false;
-let Begin = true;
-let inEndScreen = false;
-let inHomeScreen = true;
-let Difficulty = "NONE";
+let Running = false; // True when the game is being played and false in homescreen, resumescreen and endscreen
+let Begin = true; // True when the game has to begin i.e. endscreen, homescreen but not the rest
+let inEndScreen = false; // True when in EndScreen
+let inHomeScreen = true; // True when in HomeScreen
+let Difficulty = "NONE"; // Sets to the difficulty of the game through userinput
 let username = undefined;
-let showRules = false;
+let showRules = false; // Displays rules section when set to true in homescreen
 
 // ========================== Game Variables ==========================
 let curDir = 1;
 let snakeLength = 1;
 let snakeHealth = 1;
 let inStateOfEating = false; // True when the snake head coincides with a food item
-let immuneDuration = 0; // in ms
+let immuneDuration = 0; // Time for which the snake will be immune in milliseconds
 
-// Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
+// Set the snake spawn to be senter of the grid with a slight offset
 let snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
 let snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
+// Initialise arrays storing essential items
 let Food_cells = []; // [ { x:row, y:column,type: "FOOD_NAME" },... ]
 let Obstacle_cells = [];
-let Obstacle_objects;
 let Snake_cells = [{ x: snake_row, y: snake_column }]; // [ { x:row, y:column },... ]
 // =====================================================================
 
@@ -264,6 +271,7 @@ function MoveSnake() {
   Snake_cells.unshift({ x: snake_row, y: snake_column }); // adds the current snake head at the front to the list
 }
 
+// Draws Snake cells at required positions
 function DrawSnake() {
   Snake_cells.forEach((snakeCell, index) => {
     if (index === 0) {
@@ -287,6 +295,7 @@ function DrawSnake() {
     }
   });
 }
+
 // Spawning Food Logic
 function FoodSpawns() {
   // The probability of food spawning set to be inversely proportional to the exponent of the present number of food slots.
@@ -363,7 +372,7 @@ function EatFood() {
   inStateOfEating = found; // update inStateOfEating
 }
 //----------------------------------------------------
-
+// Obstacles which dont change the gameframerate
 function PassObstacles_type1() {
   for (let obstacle of Obstacle_cells) {
     if (
@@ -394,7 +403,7 @@ function PassObstacles_type1() {
     }
   }
 }
-
+// Obstacles which change the gameframerate
 function PassObstacles_type2() {
   let speedmultiplier = 1;
   for (let obstacle of Obstacle_cells) {
@@ -406,7 +415,7 @@ function PassObstacles_type2() {
   }
   snakemovementrate = basemovementrate / speedmultiplier;
 }
-
+// Updates the ScoreBoard in game display
 function UpdateScoreBoard() {
   ScoreCard = document.getElementById("ScoreBoard");
   ScoreCard.innerHTML =
@@ -417,7 +426,7 @@ function UpdateScoreBoard() {
     "s" +
     "</h1>"; // Display SnakeHealth
 }
-
+// Loads all the images once the website loads and stores them at appropriate places
 function LoadImages() {
   for (let [name, value] of FOOD_ITEMS) {
     value.load_img();
@@ -449,7 +458,7 @@ function LoadImages() {
     IMAGES.set("SNAKE_BODY", SnakeBodyImg);
   };
 }
-
+// ensures a non-empty username is entered
 function validateUserName() {
   username = document.getElementById("username").value;
   if (!username || username.trim().length == 0) {
@@ -461,6 +470,8 @@ function validateUserName() {
     start();
   }
 }
+
+// Choose difficulty in homescreen
 document.getElementById("Easy").addEventListener("click", () => {
   Difficulty = "EASY";
   validateUserName();
@@ -469,6 +480,8 @@ document.getElementById("Difficult").addEventListener("click", () => {
   Difficulty = "HARD";
   validateUserName();
 });
+
+// Show or hide rules in homescreen
 document.getElementById("Rules").addEventListener("click", () => {
   if (!showRules) {
     document
@@ -481,6 +494,7 @@ document.getElementById("Rules").addEventListener("click", () => {
   }
 });
 
+// various events at various stages of the game
 //prettier-ignore
 document.addEventListener("keydown", (event) => {
   if (
@@ -529,6 +543,7 @@ function SnakeMovement() {
   else snake_row--;
 }
 
+// update various timers
 function updateTimers() {
   gametime += 250;
   if (count < 4) {
@@ -557,6 +572,7 @@ function updateTimers() {
   }
 }
 
+// starts the game to exit homescreen
 function start() {
   document.getElementById("Canvas").style.display = "block";
 
@@ -619,6 +635,7 @@ function checkdeath() {
   }
 }
 
+// when died, pops an endscreen and fetches stats in .json form and posts it to /save_score as a string
 function EndScreen(cause) {
   inHomeScreen = false;
   inEndScreen = true;
@@ -688,6 +705,7 @@ function EndScreen(cause) {
 
 LoadImages();
 
+// gameLoop which runs continously
 function gameLoop(timeStamp) {
   if (Running) {
     if (timeStamp - lasttimerupdate >= 250) {
