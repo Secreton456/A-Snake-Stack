@@ -6,8 +6,8 @@ read -p $'\e[0;94mUsername: \e[0m' USERNAME
 
 echo -e "\e[1;92mCHOOSE A PROMPT YOU WANT TO QUERY ABOUT\e[0m\n"
 
-echo -e "\e[1;   ]1)  View Recent Analytics of "$USERNAME"\e[0m"
-echo -e "\e[1;   ]2)  View Overall Stastics of "$USERNAME"\e[0m"
+echo -e "\e[1;93m   1)  View Recent Analytics of "$USERNAME"\e[0m"
+echo -e "\e[1;93m   2)  View Overall Stastics of "$USERNAME"\e[0m"
 
 read -p $'\e[1;94mEnter the Prompt number: \e[0m' PROMPT
 
