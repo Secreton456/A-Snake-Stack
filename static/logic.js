@@ -6,17 +6,33 @@ const CANVAS_WIDTH = 1280;
 const CANVAS_HEIGHT = 832;
 let GAME_FRAME_RATE = 10;
 let basemovementrate = 1000 / GAME_FRAME_RATE;
-let lastRenderTime = 0;
-let lasttimerupdate = 0;
-let snakemovementrate = basemovementrate;
 const e = 2.718;
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
-let poisontime = 0;
-let count = 0;
-let gametime = 0;
 // ========================== Game Classes ============================
+
 class Food {
+  /**
+   * The Food class implements various food types in the snake game
+   * It has various parameters in its constructor as listed below with description.
+   *
+   *          @datatype    @var             @description
+   * @param   {string}     name             The name of the food type passed as a string.
+   * @param   {float}      health           The change in @var snakeHealth after passing through the object.
+   * @param   {float}      immunity         @var immuneDuration is set to this value once
+   *                                        the player passes through the object.
+   * @param   {float}      probability      The relative probability of spawn in a cell of the object.
+   *                                        Refer to the {@link FoodSpawns} documentation for more info.
+   * @param   {string}     img_src          The relative path of the image source to be used with respect to
+   *                                        the project's root directory.
+   *
+   * @function load_img    @returns {void}  Loads the image source and stores it in a map @var IMAGES for reusability i.e. prevent
+   *                                        reloading the source file everytime an object is blitted on the screen.
+   *
+   * @example FoodItem = new Food("Apple", 1, 0, 0.4, "/static/assets/apple.png")
+   * @notice  img_src must be a given as a string containing the relative path of
+   *          the image relative to the root directory of the project folder.
+   */
   constructor(name, health, immunity, probability, img_src) {
     this.name = name;
     this.health = health;
@@ -34,13 +50,28 @@ class Food {
 }
 
 class Obstacle {
+  /**
+   *          @datatype     @var            @description
+   * @param   {string}      name            The name of the obstacle passed on as a string.
+   * @param   {int}         row             The row number of the obstacle in the grid.
+   * @param   {int}         column          The column number of the obstacle in the grid.
+   * @param   {string}      img_src         The relative path of the image source to be used with respect to
+   *                                        the project's root directory.
+   *
+   * @function draw             @returns {void}     Draws the obstacle object on the grid at its row, column.
+   * @function isActive         @returns {boolean}  Checks if snakeHead is coinciding with the object.
+   * @function isPassiveActive  @returns {boolean}  Checks if any cell of the snake coincides with the object.
+   * @function effect           @returns {unknown}  Each sub-class has a different effect and the logic is written here.
+   *
+   */
+
   constructor(name, row, column) {
     this.name = name;
     this.img_src = IMAGES.get(name);
     this.row = row;
     this.column = column;
-    this.eatable = true;
   }
+
   draw() {
     ctx.drawImage(
       this.img_src,
@@ -50,128 +81,217 @@ class Obstacle {
       GRID_WIDTH,
     );
   }
-  // checks if the snake head coincides with the obstacle
+
   isActive(Snake_cells) {
     if (Snake_cells[0].x == this.row && Snake_cells[0].y == this.column)
       return true;
   }
-  // checks if any part of the snake's body coincides with the obstacle
+
   isPassiveActive(Snake_cells) {
     for (let cell of Snake_cells) {
       if (cell.x == this.row && cell.y == this.column) return true;
     }
     return false;
   }
-  // effect function of each obstacle, runs when active or passive active depending on the obstacle
+
   effect() {}
 }
 
 class RottenFlesh extends Obstacle {
+  /**
+   * @constructor refer to {@link Obstacle}
+   *
+   *         @datatype    @var                  @description
+   * @param  {float}      damage_per_frame      Reduction in @var snakeHealth per frame of the game.
+   * @param  {float}      time_left             Time left for the object to despawn in milliseconds.
+   *
+   * @function isActive         inherited from {@link Obstacle.isActive}
+   * @function isPassiveActive  always set to false i.e. RottenFlesh is effective only when Active.
+   * @function effect           refer to {@link effect}
+   */
+
   constructor(name, row, column, damage_per_frame, time_left = 10000) {
     super(name, row, column);
     this.damage_per_frame = damage_per_frame;
     this.time_left = time_left;
   }
+
   draw() {
     super.draw();
   }
+
   isActive(Snake_cells) {
     return super.isActive(Snake_cells);
   }
-  // set to be false
+
   isPassiveActive(Snake_cells) {
     return false;
   }
-  // sets poison time to a maximum of 5 seconds
-  effect(snakeHealth) {
+
+  effect() {
+    /**
+     *  @returns {void}   sets poisontime to max(poisontime, 5s) i.e. the effect is active for 5s
+     *  refer to {@link PassObstaclesOfFirstType} for how it is called
+     *  Refer to @var poisontime in {@link updateTimers} for more details
+     */
     poisontime = Math.max(poisontime, 5000); //
-    return snakeHealth;
   }
 }
 
 class Lava extends Obstacle {
+  /**
+   * @constructor refer to {@link Obstacle}
+   *
+   * @param {float}   time_left Time left for the object to despawn in milliseconds.
+   *
+   * @function isActive         inherited from {@link Obstacle.isActive}
+   * @function isPassiveActive  always set to false i.e. Lava is effective only when Active.
+   * @function effect           refer to {@link effect}
+   */
+
   constructor(name, row, column, time_left = 10000) {
     super(name, row, column);
     this.time_left = time_left;
   }
+
   draw() {
     super.draw();
   }
+
   isActive(Snake_cells) {
     return super.isActive(Snake_cells);
   }
+
   isPassiveActive(Snake_cells) {
     return false;
   }
-  // dies instanstly
-  effect(snakeHealth) {
+
+  effect() {
+    /**
+     * Calls the {@link EndScreen} function, refer to it for more explanation.
+     * refer to {@link PassObstaclesOfFirstType} for how it is called
+     */
     EndScreen("LAVA");
   }
 }
 
 class Magma extends Obstacle {
+  /**
+   * @constructor refer to {@link Obstacle}
+   *
+   *         @datatype    @var                  @description
+   * @param  {float}      damage_per_frame      Reduction in @var snakeHealth per frame of the game.
+   * @param  {float}      time_left             Time left for the object to despawn in milliseconds.
+   *
+   * @function isActive         always set to false i.e. Magma is effective only when PassiveActive.
+   * @function isPassiveActive  inherited from {@link Obstacle.isPassiveActive}
+   * @function effect           refer to {@link effect}
+   */
+
   constructor(name, row, column, damage_per_frame, time_left = 10000) {
     super(name, row, column);
     this.damage_per_frame = damage_per_frame;
-    this.eatable = false;
     this.time_left = time_left;
   }
+
   draw() {
     super.draw();
   }
+
   isActive() {
     return false;
   }
+
   isPassiveActive(Snake_cells) {
     return super.isPassiveActive(Snake_cells);
   }
-  // damages the player every frame of the game when in contact with the player
+
   effect(snakeHealth) {
+    /**
+     * @returns {float}
+     * Reduces the snakeHealth by damage_per_frame everytime its called.
+     * refer to {@link PassObstaclesOfFirstType} for how it is called
+     */
     snakeHealth -= Math.min(snakeHealth, this.damage_per_frame);
     return snakeHealth;
   }
 }
 
 class SoulSand extends Obstacle {
+  /**
+   * @constructor refer to {@link Obstacle}
+   *
+   * @param {float} speedbuff     The speed at which snake moves relative to when it was at base game.
+   * @param {float} time_left     Time left for the object to despawn in milliseconds.
+   *
+   * @function isActive         always set to false i.e. SoulSand is effective only when PassiveActive.
+   * @function isPassiveActive  inherited from {@link Obstacle.isPassiveActive}
+   *
+   *
+   * Refer to {@link PassObstaclesOfSecondType} for its effects.
+   */
+
   constructor(name, row, column, speedbuff, time_left = 10000) {
     super(name, row, column);
     this.speedbuff = speedbuff;
-    this.eatable = false;
     this.time_left = time_left;
   }
+
   draw() {
     super.draw();
   }
+
   isActive() {
     return false;
   }
+
   isPassiveActive(Snake_cells) {
     return super.isPassiveActive(Snake_cells);
   }
 }
 
 class BlueIce extends Obstacle {
+  /**
+   * @constructor refer to {@link Obstacle}
+   *
+   * @param {float} speedbuff     The speed at which snake moves relative to when it was at base game.
+   * @param {float} time_left     Time left for the object to despawn in milliseconds.
+   *
+   * @function isActive         always set to false i.e. BlueIce is effective only when PassiveActive.
+   * @function isPassiveActive  inherited from {@link Obstacle.isPassiveActive}
+   *
+   *
+   * Refer to {@link PassObstaclesOfSecondType} for its effects.
+   */
+
   constructor(name, row, column, speedbuff, time_left = 10000) {
     super(name, row, column);
     this.speedbuff = speedbuff;
-    this.eatable = false;
     this.time_left = time_left;
   }
+
   draw() {
     super.draw();
   }
+
   isActive() {
     return false;
   }
+
   isPassiveActive(Snake_cells) {
     return super.isPassiveActive(Snake_cells);
   }
 }
-// ====================================================================
 
-// FOOD_TYPE: [NAME, HEALTH, IMMUNITY(in ms), RELATIVE PROBABILITY, IMAGE SOURCE]
+// =====================================================================
+
 // prettier-ignore
 const FOOD_ITEMS = new Map([
+  /**
+   * Stores all the food items for quick lookup instead of creating a new Object
+   * Refer to {@link FoodSpawns} for more details on how this is used.
+   * [NAME, new Food(NAME, HEALTH, IMMUNITY(in ms), RELATIVE PROBABILITY, IMAGE SOURCE)]
+   */
   ["APPLE", new Food("APPLE", 1, 0, 0.4, "/static/assets/apple.png")],
   ["CARROT", new Food("CARROT", 1, 0, 0.3, "/static/assets/carrot.png")],
   ["PUMPKIN_PIE", new Food("PUMPKIN_PIE", 4, 0, 0.18, "/static/assets/pumpkin_pie.png")],
@@ -180,17 +300,23 @@ const FOOD_ITEMS = new Map([
   ["ENCHANTED_APPLE",new Food("ENCHANTED_APPLE",10,10000,0.001,"/static/assets/enchanted_apple.png")],
 ]);
 
-// PROBABLITY OF SPAWNING STORED
 const OBSTACLE_ITEMS = new Map([
+  /**
+   * Stores the relative probability of spawns of all the obstacles.
+   * Refer to {@link ObstacleSpawns} for more details on how this is used.
+   * [Name, RELATIVE_PROBABILITY]
+   */
   ["LAVA", 0.1],
   ["MAGMA", 0.1],
   ["ROTTEN_FLESH", 0.1],
   ["SOUL_SAND", 0.1],
   ["BLUE_ICE", 0.1],
 ]);
-// All the IMAGES from assets folder load and get stored here after LoadImages() runs
+
+/** All the IMAGES from assets folder load and get stored here after @function LoadImages() just after the webpage loads.*/
 const IMAGES = new Map();
-// A  map of the death messages displayed after the game is over
+
+/**  A  map of the death messages displayed after the game is over. Refer to @function EndScreen(). */
 const DEATH_MESSAGES = new Map([
   ["WALL", "Ouch, theres a wall for a reason man!"],
   ["BODY", "Ah! Having a long body has its own problems</text>"],
@@ -198,51 +324,82 @@ const DEATH_MESSAGES = new Map([
   ["ZERO_HEALTH", "I feel so weak, I just died of zero health!"],
 ]);
 
-// =====================================================================
+// ========================== Game Variables ==========================
 
 let Running = false; // True when the game is being played and false in homescreen, resumescreen and endscreen
 let Begin = true; // True when the game has to begin i.e. endscreen, homescreen but not the rest
+
 let inEndScreen = false; // True when in EndScreen
 let inHomeScreen = true; // True when in HomeScreen
-let Difficulty = "NONE"; // Sets to the difficulty of the game through userinput
-let username = undefined;
-let showRules = false; // Displays rules section when set to true in homescreen
 
-// ========================== Game Variables ==========================
+/**
+ * Sets to the difficulty of the game through userinput.
+ * Current Difficulties available "EASY", "HARD".
+ */
+let Difficulty = "NONE";
+let username = "";
+let showRules = false; // Displays rules section when set to true in homescreen.
+
+/**
+ *  @var curDir = 1 implies snake is moving upwards i.e. the last pressed key is W/UpArrow.
+ *  @var curDir = 2 implies snake is moving downwards i.e. the last pressed key is S/DownArrow.
+ *  @var curDir = 3 implies snake is moving rightwards i.e. the last pressed key is D/RightArrow.
+ *  @var curDir = 4 implies snake is moving leftwards i.e. the last pressed key is A/LeftArrow.
+ */
 let curDir = 1;
 let snakeLength = 1;
 let snakeHealth = 1;
-let inStateOfEating = false; // True when the snake head coincides with a food item
-let immuneDuration = 0; // Time for which the snake will be immune in milliseconds
+let inStateOfEating = false; // True when the snake head coincides with a food item.
+let immuneDuration = 0; // Time for which the snake will be immune in milliseconds.
 
-// Set the snake spawn to be senter of the grid with a slight offset
+// Set the snake spawn to be the center of the grid with a slight offset
 let snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
 let snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
+
 // Initialise arrays storing essential items
 let Food_cells = []; // [ { x:row, y:column,type: "FOOD_NAME" },... ]
 let Obstacle_cells = [];
 let Snake_cells = [{ x: snake_row, y: snake_column }]; // [ { x:row, y:column },... ]
+
+// lastRender
+let lastRenderTime = 0;
+let lasttimerupdate = 0;
+let snakemovementrate = basemovementrate;
+
+let poisontime = 0;
+let count = 0;
+let gametime = 0;
+
 // =====================================================================
 
 function initiate_game_variables() {
+  /**
+   * @returns {void}
+   * Initiates primary game variables to default values whenever called.
+   * Called in {@link start} and {@link home}
+   */
   curDir = 1;
   snakeLength = 1;
   snakeHealth = 1;
-  inStateOfEating = false; // True when the snake head coincides with a food item
-  immuneDuration = 0; // in ms
+  inStateOfEating = false;
+  immuneDuration = 0;
   poisontime = 0;
   count = 0;
   gametime = 0;
-  // Generate a random number from 0 to (CANVAS_WIDTH/GRID_WIDTH)-1
   snake_row = Math.floor(CANVAS_WIDTH / (2 * GRID_WIDTH)) - 5;
   snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
-  Food_cells = []; // [ { x:row, y:column,type: "FOOD_NAME" },... ]
-  Snake_cells = [{ x: snake_row, y: snake_column }]; // [ { x:row, y:column },... ]
-  // =====================================================================
+  Food_cells = [];
+  Snake_cells = [{ x: snake_row, y: snake_column }];
 }
 
-// Updates the Canvas Including the grid and the background
 function UpdateCanvas() {
+  /**
+   * Updates the Canvas Including the grid and the background.
+   * Called in {@link gameLoop}.
+   * The background is drawn on screen along with all the lines everytime the @function gameLoop is run.
+   */
+
+  // fills the background
   ctx.fillStyle = "#7fbf4d";
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -271,8 +428,12 @@ function MoveSnake() {
   Snake_cells.unshift({ x: snake_row, y: snake_column }); // adds the current snake head at the front to the list
 }
 
-// Draws Snake cells at required positions
 function DrawSnake() {
+  /**
+   * Draws Snake cells at required positions.
+   * Called in {@link gameLoop}.
+   * Snake cells are drawn on screen along with all the lines everytime the @function gameLoop is run.
+   */
   Snake_cells.forEach((snakeCell, index) => {
     if (index === 0) {
       //head
@@ -296,24 +457,36 @@ function DrawSnake() {
   });
 }
 
-// Spawning Food Logic
 function FoodSpawns() {
-  // The probability of food spawning set to be inversely proportional to the exponent of the present number of food slots.
+  /**
+   * Called in {@link gameLoop}.
+   * Every call, an iteration happens over each cell of the grid and over each foodtype store in @var {Map} FOOD_ITEMS
+   * and if a random number generated is less than a certain value, a food object spawns.
+   *
+   * This certain value is inversely proportional to the exponent of already present number food items on the grid.
+   * and is proportional to the relative probability of the object as decided in @var {Map} FOOD_ITEMS.
+   *
+   * No new objects are created but only the cell numbers where the random number exceeds the probability during iteration
+   * are appended to @var {array} Food_cells by referring to @var {Map} FOOD_ITEMS.
+   *
+   * It also ensures that no two food items spawn at the same position,
+   * and that food items do not spawn on obstacles or on the snake.
+   */
   for (let i = 0; i < CANVAS_WIDTH / GRID_WIDTH; i++)
     for (let j = 0; j < CANVAS_HEIGHT / GRID_WIDTH; j++)
-      for (let [food, value] of FOOD_ITEMS) {
+      for (let [food_name, object] of FOOD_ITEMS) {
         //prettier-ignore
-        if (Math.random() < (0.5 * value.probability) / (e ** (Food_cells.length ** 1) * 6))
+        if (Math.random() < (0.5 * object.probability) / (e ** (Food_cells.length ** 1) * 6))
           if(Food_cells.find(cell => (cell.x == i && cell.y == j))===undefined
           && Snake_cells.find(cell => (cell.x == i  && cell.y == j))=== undefined
           && Obstacle_cells.find(cell => (cell.row == i && cell.column == j))===undefined)
-            Food_cells[Food_cells.length] = { x: i, y: j, type: food };
+            Food_cells[Food_cells.length] = { x: i, y: j, type: food_name };
       }
 
-  // sorting the Food_cells
+  // Sorting array based on smaller x value
   Food_cells.sort((a, b) => a.x - b.x);
 
-  // Drawing the Food cells
+  // Drawing each of the Food cell present in Food_cells
   for (const food of Food_cells) {
     ctx.drawImage(
       IMAGES.get(food.type),
@@ -326,6 +499,20 @@ function FoodSpawns() {
 }
 
 function ObstacleSpawns() {
+  /**
+   * Called in {@link gameLoop}.
+   * Every call, an iteration happens over each cell of the grid and over each obstacle and if a
+   * random number generated is less than a certain value, a certain obstacle object spawns.
+   *
+   * This certain value is inversely proportional to the exponent of already present number food items on the grid.
+   * and is proportional to the relative probability of the object as decided in @var {Map} OBSTACLE_ITEMS.
+   *
+   * New objects are created whenever a random number exceeds the probability as decided above for a cell during iteration
+   * and are added to @var {array} Obstacle_cells, with @var time_left varying between 5-10s
+   *
+   * It also ensures that no two obstacles spawn at the same position,
+   * and that obstacles do not spawn on food items or on the snake.
+   */
   //prettier-ignore
   for (let i = 0; i < CANVAS_WIDTH / GRID_WIDTH; i++)
     for (let j = 0; j < CANVAS_HEIGHT / GRID_WIDTH; j++)
@@ -353,27 +540,52 @@ function ObstacleSpawns() {
 }
 
 function EatFood() {
-  let found = false; // temporary variable to update inStateofEating
+  /**
+   * Called in {@link gameLoop}.
+   *
+   * iterates over all food items present in @var {array} Food_cells and checks if the snake head is
+   * coinciding with the cell.
+   *
+   * In case a food cell is found it will be spliced off the array @var Food_cells hence will be discontinued from
+   * being drawn and performing eat checks any further.
+   * Furthermore the @var snakeHealth and @var immuneDuration changes depending on the food type.
+   *
+   * In the instance of snake head coinciding with a food cell @var inStateOfEating is set to false
+   * and the last snakeCell isn't popped off the @var {array} Snake_cells.
+   * Refer to {@link DrawSnake}.
+   *
+   */
+
+  let foundCell = false; // temporary variable to update inStateofEating
   for (let food of Food_cells) {
     if (snake_row == food.x && snake_column == food.y) {
       let index = Food_cells.findIndex(
         (obj) => obj.x == food.x && obj.y == food.y,
       );
-      Food_cells.splice(index, 1); // Removes the first instance of the snake head in the array
+      Food_cells.splice(index, 1); // Remove the instance of the food cell coinciding with the snakeHead in the array.
       snakeHealth += FOOD_ITEMS.get(food.type).health;
       snakeLength++;
       immuneDuration = Math.max(
         immuneDuration,
         FOOD_ITEMS.get(food.type).immunity,
       );
-      found = true;
+      foundCell = true;
     }
   }
-  inStateOfEating = found; // update inStateOfEating
+  inStateOfEating = foundCell; // update inStateOfEating
 }
-//----------------------------------------------------
-// Obstacles which dont change the gameframerate
-function PassObstacles_type1() {
+
+function PassObstaclesOfFirstType() {
+  /**
+   * Called in {@link gameLoop}
+   *
+   * This function handles the logic for 3 specific obstacles of the classes {@link RottenFlesh}, {@link Lava},
+   * {@link Magma}, i.e. majorly Obstacles which do not affect the game Frame Rate.
+   *
+   * iterates over Obstacles in @var Obstacle_cells and checks for instance of the above classes,
+   * In case of RottenFlesh, Lava {@link Obstacle.isActive()} is checked and {@link Obstacle.effect()} is called.
+   * In case of Magma {@link Obstacle.isPassiveActive()} is checked and {@link Obstacle.effect(snakeHealth)} is called.
+   */
   for (let obstacle of Obstacle_cells) {
     if (
       obstacle instanceof RottenFlesh ||
@@ -384,14 +596,8 @@ function PassObstacles_type1() {
         let index = Obstacle_cells.findIndex(
           (obj) => obj.row == obstacle.row && obj.column == obstacle.column,
         );
-        if (obstacle instanceof RottenFlesh) {
-          if (immuneDuration == 0) {
-            snakeHealth = obstacle.effect(snakeHealth);
-          }
-        } else {
-          if (immuneDuration == 0) {
-            obstacle.effect(snakeHealth);
-          }
+        if (immuneDuration == 0) {
+          obstacle.effect();
         }
         Obstacle_cells.splice(index, 1);
       }
@@ -403,8 +609,8 @@ function PassObstacles_type1() {
     }
   }
 }
-// Obstacles which change the gameframerate
-function PassObstacles_type2() {
+
+function PassObstaclesOfSecondType() {
   let speedmultiplier = 1;
   for (let obstacle of Obstacle_cells) {
     if (obstacle instanceof SoulSand || obstacle instanceof BlueIce) {
@@ -497,25 +703,13 @@ document.getElementById("Rules").addEventListener("click", () => {
 // various events at various stages of the game
 //prettier-ignore
 document.addEventListener("keydown", (event) => {
-  if (
-    (event.key == "ArrowUp" || event.key == "w" || event.key == "W") &&
-    curDir != 2
-  )
+  if ((event.key == "ArrowUp" || event.key == "w" || event.key == "W") && curDir != 2)
     curDir = 1;
-  else if (
-    (event.key == "ArrowDown" || event.key == "s" || event.key == "S") &&
-    curDir != 1
-  )
+  else if ((event.key == "ArrowDown" || event.key == "s" || event.key == "S") && curDir != 1)
     curDir = 2;
-  else if (
-    (event.key == "ArrowRight" || event.key == "d" || event.key == "D") &&
-    curDir != 4
-  )
+  else if ((event.key == "ArrowRight" || event.key == "d" || event.key == "D") && curDir != 4)
     curDir = 3;
-  else if (
-    (event.key == "ArrowLeft" || event.key == "a" || event.key == "A") &&
-    curDir != 3
-  )
+  else if ((event.key == "ArrowLeft" || event.key == "a" || event.key == "A") && curDir != 3)
     curDir = 4;
   else if (event.key == "Enter" && Begin == false) {
     document.getElementById("overlay-homescreen").style.setProperty("display", "none");
@@ -735,14 +929,14 @@ function gameLoop(timeStamp) {
       if (!hitwall || immuneDuration <= 0) {
         MoveSnake();
       }
-      PassObstacles_type1();
+      PassObstaclesOfFirstType();
       lastRenderTime = timeStamp;
     }
     DrawSnake();
     ObstacleSpawns();
     FoodSpawns();
 
-    PassObstacles_type2();
+    PassObstaclesOfSecondType();
     UpdateScoreBoard();
     checkdeath();
 
