@@ -30,7 +30,7 @@ def get_highscore():
     with open(history, "r") as file:
         csvreader = csv.reader(file, delimiter="|")
         for row in csvreader:
-            if float(row[2]) > int(current_highscore["highscore"]):
+            if float(row[2]) > float(current_highscore["highscore"]):
                 current_highscore["highscore"] = row[2]
                 current_highscore["username"] = row[1]
                 highscore_changed = True

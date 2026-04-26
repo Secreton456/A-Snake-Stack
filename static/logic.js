@@ -631,11 +631,6 @@ function PassObstaclesOfSecondType() {
 // Updates the ScoreBoard in game display
 async function UpdateScoreBoard(highscore, bestplayer) {
   ScoreCard = document.getElementById("ScoreBoard");
-  if (snakeHealth >= highscore) {
-    const response = await updateHighScore();
-    highscore = response.highscore;
-    bestplayer = response.username;
-  }
   ScoreCard.innerHTML =
     "<h1 class='header'>Score: " +
     snakeHealth.toString().padStart(3, "0") +
@@ -661,6 +656,8 @@ async function updateHighScore() {
   });
   const response = await postJson.json();
   console.log(response);
+  highscore = response.highscore;
+  bestplayer = response.username;
   return response;
 }
 
@@ -925,9 +922,9 @@ function EndScreen(cause) {
     headers: { "Content-type": "application/json; charset=UTF-8" },
   })
     .then((response) => response.json())
-    .then((json) => console.log(json));
+    .then((json) => console.log(json))
+    .then(() => updateHighScore());
   Begin = true;
-  updateHighScore();
 }
 
 LoadImages();
