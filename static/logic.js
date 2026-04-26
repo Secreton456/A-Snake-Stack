@@ -340,6 +340,15 @@ let Difficulty = "NONE";
 let username = "";
 let showRules = false; // Displays rules section when set to true in homescreen.
 
+let highscore = 0;
+let bestplayer = NaN;
+
+async function initHighscore() {
+  const init_response = await updateHighScore();
+  highscore = init_response.highscore;
+  bestplayer = init_response.username;
+}
+
 /**
  *  @var curDir = 1 implies snake is moving upwards i.e. the last pressed key is W/UpArrow.
  *  @var curDir = 2 implies snake is moving downwards i.e. the last pressed key is S/DownArrow.
@@ -430,13 +439,12 @@ function MoveSnake() {
 
 function DrawSnake() {
   /**
-   * Draws Snake cells at required positions.
+   * Draws Snake cells at required positions with one snakeHead and the rest snakeBody.
    * Called in {@link gameLoop}.
    * Snake cells are drawn on screen along with all the lines everytime the @function gameLoop is run.
    */
   Snake_cells.forEach((snakeCell, index) => {
     if (index === 0) {
-      //head
       ctx.drawImage(
         IMAGES.get("SNAKE_HEAD"),
         snakeCell.x * GRID_WIDTH,
@@ -445,7 +453,6 @@ function DrawSnake() {
         GRID_WIDTH,
       );
     } else {
-      //body
       ctx.drawImage(
         IMAGES.get("SNAKE_BODY"),
         snakeCell.x * GRID_WIDTH,
@@ -622,16 +629,41 @@ function PassObstaclesOfSecondType() {
   snakemovementrate = basemovementrate / speedmultiplier;
 }
 // Updates the ScoreBoard in game display
-function UpdateScoreBoard() {
+async function UpdateScoreBoard(highscore, bestplayer) {
   ScoreCard = document.getElementById("ScoreBoard");
+  if (snakeHealth >= highscore) {
+    const response = await updateHighScore();
+    highscore = response.highscore;
+    bestplayer = response.username;
+  }
   ScoreCard.innerHTML =
     "<h1 class='header'>Score: " +
     snakeHealth.toString().padStart(3, "0") +
     " Immunity: " +
     (immuneDuration / 1000).toFixed(2) +
-    "s" +
+    "s " +
+    " HighScore: " +
+    highscore.toString().padStart(3, "0") +
+    " BestPlayer: " +
+    bestplayer +
     "</h1>"; // Display SnakeHealth
 }
+
+async function updateHighScore() {
+  const url = "http://127.0.0.1:5000/highscore.json";
+  const postJson = await fetch(url, {
+    method: "POST",
+    headers: { "Content-type": "application/json; charset=UTF-8" },
+    body: JSON.stringify({
+      highscore: highscore,
+      username: username,
+    }),
+  });
+  const response = await postJson.json();
+  console.log(response);
+  return response;
+}
+
 // Loads all the images once the website loads and stores them at appropriate places
 function LoadImages() {
   for (let [name, value] of FOOD_ITEMS) {
@@ -895,9 +927,11 @@ function EndScreen(cause) {
     .then((response) => response.json())
     .then((json) => console.log(json));
   Begin = true;
+  updateHighScore();
 }
 
 LoadImages();
+initHighscore();
 
 // gameLoop which runs continously
 function gameLoop(timeStamp) {
@@ -937,7 +971,7 @@ function gameLoop(timeStamp) {
     FoodSpawns();
 
     PassObstaclesOfSecondType();
-    UpdateScoreBoard();
+    UpdateScoreBoard(highscore, bestplayer);
     checkdeath();
 
     requestAnimationFrame(gameLoop);
