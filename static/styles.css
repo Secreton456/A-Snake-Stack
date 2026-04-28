@@ -1,3 +1,8 @@
+@font-face {
+  font-family: "Press Start 2P";
+  src: url("fonts/PressStart2P-Regular.ttf") format("woff2");
+}
+
 h1 {
   margin: 0;
 }
@@ -264,4 +269,33 @@ th {
 
 .error.show {
   display: block;
+}
+.scoreboard {
+  display: flex;
+  gap: 16px;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #e0e0e0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
+  align-items: center;
+}
+
+.scoreboard .item {
+  padding: 4px 8px;
+}
+
+.scoreboard .immunity {
+  color: #55ffff;
+}
+
+.scoreboard .player {
+  color: #ffdd55;
+}
+
+.immunity.low {
+  color: #ff5555;
 }

@@ -339,7 +339,7 @@ let inHomeScreen = true; // True when in HomeScreen
 let Difficulty = "NONE";
 let username = "";
 let showRules = false; // Displays rules section when set to true in homescreen.
-
+let currentHighScore = 0;
 let GlobalHighscore = 0;
 let bestplayer = NaN;
 
@@ -618,6 +618,13 @@ function PassObstaclesOfFirstType() {
 }
 
 function PassObstaclesOfSecondType() {
+  /**
+   * Called in {@link gameLoop}
+   * This function handles logic for two specific classes of obstacles {@link SoulSand}
+   * {@link BlueIce}, i.e. the obstacles which change the game Frame Rate.
+   *
+   * @var snakemovementrate is changed accordingly when {@link Obstacle.isPassiveActive()}
+   */
   let speedmultiplier = 1;
   for (let obstacle of Obstacle_cells) {
     if (obstacle instanceof SoulSand || obstacle instanceof BlueIce) {
@@ -628,23 +635,40 @@ function PassObstaclesOfSecondType() {
   }
   snakemovementrate = basemovementrate / speedmultiplier;
 }
-// Updates the ScoreBoard in game display
-async function UpdateScoreBoard(highscore, bestplayer) {
-  ScoreCard = document.getElementById("ScoreBoard");
-  ScoreCard.innerHTML =
-    "<h1 class='header'>Score: " +
-    snakeHealth.toString().padStart(3, "0") +
-    " Immunity: " +
-    (immuneDuration / 1000).toFixed(2) +
-    "s " +
-    " HighScore: " +
-    highscore.toString().padStart(3, "0") +
-    " BestPlayer: " +
-    bestplayer +
-    "</h1>"; // Display SnakeHealth
+
+function UpdateScoreBoard(highscore, bestplayer) {
+  /**
+   * Called in {@link gameLoop}.
+   * Displays the Score of the current user(@var snakeHealth), Immunity duration left(@var immuneDuration).
+   * Also displays the overall highscore among all the users present in the server logs. Refer to {@link updateHighScore}
+   */
+  const ScoreCard = document.getElementById("ScoreBoard");
+
+  ScoreCard.innerHTML = `
+  <div class="scoreboard">
+    <span class="item">Score: ${snakeHealth.toString().padStart(3, "0")}</span>
+    <span class="item immunity">Immunity: ${(immuneDuration / 1000).toFixed(2)}s</span>
+    <span class="item">Overall HighScore: ${highscore.toString().padStart(3, "0")}</span>
+    <span class="item player">Best Player: ${bestplayer}</span>
+  </div>
+`;
 }
 
 async function updateHighScore() {
+  /**
+   * Called in {@link EndScreen} i.e. whenever the snake dies.
+   * Sends a POST request to the Flask server at /highscore.json with the current game data.
+   *
+   * Request payload:
+   * { highscore: GlobalHighscore, username: username }
+   *
+   * Awaits and returns a JSON response:
+   * { status: status, highscore: GlobalHighscore, username: username }
+   *
+   * status is either highscore_updated or highscore_unchanged.
+   * @var GlobalHighscore and @var bestplayer are respectively updated.
+   */
+
   const url = "http://127.0.0.1:5000/highscore.json";
   const postJson = await fetch(url, {
     method: "POST",
@@ -661,8 +685,11 @@ async function updateHighScore() {
   return response;
 }
 
-// Loads all the images once the website loads and stores them at appropriate places
 function LoadImages() {
+  /**
+   * Runs once whenever the webpage loads.
+   * Loads all the assets required and stores it in @var {Map} IMAGES as ["name", img] for access.
+   */
   for (let [name, value] of FOOD_ITEMS) {
     value.load_img();
   }
@@ -693,12 +720,27 @@ function LoadImages() {
     IMAGES.set("SNAKE_BODY", SnakeBodyImg);
   };
 }
-// ensures a non-empty username is entered
+
 function validateUserName() {
+  /**
+   * Called in the Event Listener of Difficulty buttons present in homescreen.
+   * Eliminates usernames with any special characters to prevent parsing errors in the server.
+   * Validates the username if it is non-empty.
+   * Displays appropriate error messages for the above two cases.
+   * Calls the @function start if username is validated to Start the game.
+   */
   username = document.getElementById("username").value;
+
+  // Regular Expression for testing the username, matches for a string containing only a-z, A-Z, 0-9.
+  const userPattern = new RegExp("^[a-zA-Z0-9]*$");
+
   if (!username || username.trim().length == 0) {
     document.getElementById("errormsg").textContent =
       "Username cannot be empty";
+    document.getElementById("errormsg").classList.add("show");
+  } else if (!userPattern.test(username)) {
+    document.getElementById("errormsg").textContent =
+      "Username can contain only a-z,A-Z,0-9";
     document.getElementById("errormsg").classList.add("show");
   } else {
     document.getElementById("errormsg").classList.remove("show");
@@ -706,7 +748,10 @@ function validateUserName() {
   }
 }
 
-// Choose difficulty in homescreen
+/**
+ * Attaches event listeners for the difficulty selection buttons in homescreen.
+ * When a button is clicked, difficulty is set accordingly and {@link validateUserName} is called.
+ */
 document.getElementById("Easy").addEventListener("click", () => {
   Difficulty = "EASY";
   validateUserName();
@@ -716,7 +761,10 @@ document.getElementById("Difficult").addEventListener("click", () => {
   validateUserName();
 });
 
-// Show or hide rules in homescreen
+/**
+ * Attaches event listener to the show rules button on homescreen/resumescreen.
+ * Toggles @var showRules on button click to show or hide the rules section.
+ */
 document.getElementById("Rules").addEventListener("click", () => {
   if (!showRules) {
     document
@@ -729,8 +777,11 @@ document.getElementById("Rules").addEventListener("click", () => {
   }
 });
 
-// various events at various stages of the game
 //prettier-ignore
+/**
+ * Attaches various event listeners to keyboard buttons during various stages of the game
+ * WASD/Arrow keys in-game for snake movement.
+ */
 document.addEventListener("keydown", (event) => {
   if ((event.key == "ArrowUp" || event.key == "w" || event.key == "W") && curDir != 2)
     curDir = 1;
@@ -740,22 +791,31 @@ document.addEventListener("keydown", (event) => {
     curDir = 3;
   else if ((event.key == "ArrowLeft" || event.key == "a" || event.key == "A") && curDir != 3)
     curDir = 4;
+
+  // Resumes the game when Enter is pressed during pause.
   else if (event.key == "Enter" && Begin == false) {
     document.getElementById("overlay-homescreen").style.setProperty("display", "none");
     Running = true;
     requestAnimationFrame(gameLoop);
-  } else if (event.key == "Enter" && inEndScreen == true) {
-    start();
-    inEndScreen = false;
-  } else if ((event.key == "H" || event.key == "h") && inEndScreen == true) {
-    home();
-    inEndScreen = false;
-  } else if (event.key == "Backspace" && inHomeScreen == false) {
+  }
+  // Pauses the game when backspace is pressed during gameplay.
+  else if (event.key == "Backspace" && inHomeScreen == false) {
     document.getElementById("Difficulty").style.setProperty("display", "none");
     document.getElementById("overlay-homescreen").style.setProperty("display", "flex");
     document.getElementById("username-text").style.display = "none";
     document.getElementById("resume-screen-instructions").style.display = "flex";
     Running = false;
+  }
+
+  // Continues the game with same difficulty and username when pressed Enter in EndScreen.
+  else if (event.key == "Enter" && inEndScreen == true) {
+    start();
+    inEndScreen = false;
+  }
+  // Takes back to homescreen when pressed H in EndScreen.
+  else if ((event.key == "H" || event.key == "h") && inEndScreen == true) {
+    home();
+    inEndScreen = false;
   }
 });
 
@@ -766,7 +826,6 @@ function SnakeMovement() {
   else snake_row--;
 }
 
-// update various timers
 function updateTimers() {
   gametime += 250;
   if (count < 4) {
@@ -795,8 +854,15 @@ function updateTimers() {
   }
 }
 
-// starts the game to exit homescreen
 function start() {
+  /**
+   * Invoked after username validation ({@link validateUserName}) or when Enter is pressed on the end screen.
+   * Displays the canvas as a block, and toggles @var inEndScreen or @var inHomeScreen and chooses appropriate GRID_SIZE or
+   * GAME_FRAME_RATE based off difficulty
+   *
+   * Sets @var snakemovementrate to @var basemovementrate and initiates game variables.
+   * Set display style of HTML elements of endscreen and homescreen ovaerlays to none.
+   */
   document.getElementById("Canvas").style.display = "block";
 
   inEndScreen = false;
@@ -813,12 +879,8 @@ function start() {
       snakemovementrate = basemovementrate;
       initiate_game_variables();
       Begin = false;
-      document
-        .getElementById("overlay-homescreen")
-        .style.setProperty("display", "none");
-      document
-        .getElementById("overlay-endscreen")
-        .style.setProperty("display", "none");
+      document.getElementById("overlay-homescreen").style.display = "none";
+      document.getElementById("overlay-endscreen").style.display = "none";
       Running = true;
     }
     requestAnimationFrame(gameLoop);
@@ -828,13 +890,14 @@ function start() {
 }
 
 function checkdeath() {
-  // Checks for death only when not immune
+  // Triggers snake death when health reaches zero.
   if (snakeHealth <= 0) {
     EndScreen("ZERO_HEALTH");
     return;
   }
+
   if (immuneDuration == 0) {
-    //checking for bumping with wall
+    // Collision detection with the wall.
     if (
       snake_row <= -1 ||
       snake_row >= CANVAS_WIDTH / GRID_WIDTH + 1 ||
@@ -843,7 +906,7 @@ function checkdeath() {
     ) {
       EndScreen("WALL");
     }
-    //checking for bumping with itself
+    // Collision detection with its body.
     if (snakeLength > 1) {
       for (let i = 1; i < Snake_cells.length; i++) {
         if (
@@ -858,11 +921,19 @@ function checkdeath() {
   }
 }
 
-// when died, pops an endscreen and fetches stats in .json form and posts it to /save_score as a string
 function EndScreen(cause) {
+  /**
+   * Called whenever the snake dies.
+   * Toggles @var inHomeScreen, @var inEndScreen, @var Running.
+   * Updates @var currentHighScore to the maximum of its previous value and the current snake health.
+   *
+   * Displays a humorous death message, the cause of death, the Score of the user, Time the snake survived
+   * and the user's personal best.
+   */
   inHomeScreen = false;
   inEndScreen = true;
   Running = false;
+  currentHighScore = Math.max(currentHighScore, snakeHealth);
   EndScore = document.getElementById("EndScore");
   EndScore.innerHTML =
     "<br>" +
@@ -883,7 +954,9 @@ function EndScreen(cause) {
     "<br>" +
     "<text class='header' style='color: aliceblue;'>Time Survived: " +
     (gametime / 1000).toFixed(2) +
-    "s</text>";
+    "s</text>" +
+    "<text class='header' style='color: aliceblue;'> Personal Best: " +
+    currentHighScore.toFixed(1);
   if (snakeHealth < 20) {
     EndScore.innerHTML +=
       "<br>" +
@@ -901,6 +974,16 @@ function EndScreen(cause) {
     .getElementById("overlay-endscreen")
     .style.setProperty("display", "flex");
 
+  /**
+   * Sends a POST request to the Flask server at /save_score with the current game data.
+   *
+   * Request payload:
+   * {username: username,score: snakeHealth,cause: cause,timeofDeath: timeofDeath,duration:duration }
+   *
+   * Awaits a confirmation JSON response
+   * { message: received}
+   * Then calls {@link updateHighScore()} to update the global highscore.
+   */
   fetch("http://127.0.0.1:5000/save_score", {
     method: "POST",
     body: JSON.stringify({
@@ -930,8 +1013,10 @@ function EndScreen(cause) {
 LoadImages();
 initHighscore();
 
-// gameLoop which runs continously
 function gameLoop(timeStamp) {
+  /**
+   *
+   */
   if (Running) {
     if (timeStamp - lasttimerupdate >= 250) {
       updateTimers();
@@ -986,4 +1071,3 @@ function home() {
   document.getElementById("username-text").style.display = "flex";
   initiate_game_variables();
 }
-LoadImages();
