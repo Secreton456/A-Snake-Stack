@@ -340,12 +340,12 @@ let Difficulty = "NONE";
 let username = "";
 let showRules = false; // Displays rules section when set to true in homescreen.
 
-let highscore = 0;
+let GlobalHighscore = 0;
 let bestplayer = NaN;
 
 async function initHighscore() {
   const init_response = await updateHighScore();
-  highscore = init_response.highscore;
+  GlobalHighscore = init_response.highscore;
   bestplayer = init_response.username;
 }
 
@@ -650,13 +650,13 @@ async function updateHighScore() {
     method: "POST",
     headers: { "Content-type": "application/json; charset=UTF-8" },
     body: JSON.stringify({
-      highscore: highscore,
+      highscore: GlobalHighscore,
       username: username,
     }),
   });
   const response = await postJson.json();
   console.log(response);
-  highscore = response.highscore;
+  GlobalHighscore = response.highscore;
   bestplayer = response.username;
   return response;
 }
@@ -968,7 +968,7 @@ function gameLoop(timeStamp) {
     FoodSpawns();
 
     PassObstaclesOfSecondType();
-    UpdateScoreBoard(highscore, bestplayer);
+    UpdateScoreBoard(GlobalHighscore, bestplayer);
     checkdeath();
 
     requestAnimationFrame(gameLoop);

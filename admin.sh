@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# ANSI Escape codes of various colors
 RED="\e[1;91m"
 GREEN="\e[1;92m"
 YELLOW="\e[1;93m"
@@ -8,6 +9,16 @@ PURPLE="\e[1;95m"
 CYAN="\e[1;96m"
 WHITE="\e[1;97m"
 RESET="\e[0m"
+
+
+# Start Menu
+# The administrator can choose between 4 options:
+#       1) View User-Specific Stats.
+#       2) View sorted game history.
+#       3) Delete entries using predefined filters
+#       4) Perform Logrotation.
+#
+# The variable PROMPT stores the choice in the menu.
 
 echo -e "${CYAN}========================================${RESET}"
 echo -e "${RED}        🐍 A SNAKE STACK          ${RESET}"
@@ -28,11 +39,16 @@ function START_MENU(){
 
 
 START_MENU
+
+# Validate PROMPT
 while true;do
     echo -ne "${BLUE}Enter your choice [1-4]: ${RESET}"
     read -r PROMPT
+    
+    # Exit the process if prompted exit.
     if [[ "$PROMPT" == "exit" ]];then
         exit 0
+    # Invalidate choices which aren't 1|2|3|4
     elif [[ "$PROMPT" != "1" && "$PROMPT" != "2" && "$PROMPT" != "3" && "$PROMPT" != "4" ]];then
         echo -e "${RED}Invalid choice. ${RESET}"
     else
@@ -40,6 +56,9 @@ while true;do
     fi
 done
 
+
+# If the administrator selects "User-Specific Stats", they will be prompted to enter a username.
+# They can then choose to view either recent games or overall statistics.
 
 if [[ $PROMPT == "1" ]]; then
     echo -e "\n${CYAN}----------------------------------------${RESET}"
@@ -54,6 +73,7 @@ if [[ $PROMPT == "1" ]]; then
     echo -e "${YELLOW}  [1]${WHITE}  View recent analytics"
     echo -e "${YELLOW}  [2]${WHITE}  View overall statistics\n"
 
+    # Validate PROMPT1
     while true; do
         echo -ne "${BLUE}Enter choice [1-2]: ${RESET}"
         read -r PROMPT1
@@ -66,10 +86,13 @@ if [[ $PROMPT == "1" ]]; then
         fi
     done
 
+    # Stay in the process till user prompts exit.
     while [[ $PROMPT1 != "exit" ]]
         do 
+            # loads administration/userstats.awk 
             awk -v user=$USERNAME -v prompt=$PROMPT1 -f administration/userstats.awk history.txt | less -R
 
+            # Repeats this action until prompted exit
             echo -e "\n${GREEN}Select an action for ${WHITE}${USERNAME}${GREEN}:${RESET}\n"
 
             echo -e "${YELLOW}  [1]${WHITE}  View recent analytics"
@@ -176,10 +199,24 @@ elif [[ $PROMPT == "3" ]]; then
     while [[ "$DEL" != "exit" ]] do    
 
         if [[ $DEL == "1" ]]; then
-            sed -E '/^[0-9]{2}\/[0-9]{2}\/[0-9]{4}, [0-9]{2}:[0-9]{2}:[0-9]{2}\|[^|]+\|[0-9]+(\.[0-9]+)?\|[^|]+\|[0-9]+(\.[0-9]+)?s$/!d' history.txt | cat > history.txt
+            echo -ne "${RED}Are you sure you want to perform the following operation? [y/n]${RESET}"
+            read -r confirmation
+            if [[ "$confirmation" == "y" ]];then
+                sed -Ei '/^[0-9]{2}\/[0-9]{2}\/[0-9]{4}, [0-9]{2}:[0-9]{2}:[0-9]{2}\|[^|]+\|[0-9]+(\.[0-9]+)?\|[^|]+\|[0-9]+(\.[0-9]+)?s$/!d' history.txt 
+                echo -e "${GREEN}Successfully deleted.${RESET}"
+            else 
+                echo -e "${GREEN}Deletion aborted.${RESET}"
+            fi
         elif [[ $DEL == "2" ]]; then
             read -p $'\e[1;94mEnter the Username: \e[0m' user
-            sed -E "/^[0-9]{2}\/[0-9]{2}\/[0-9]{4}, [0-9]{2}:[0-9]{2}:[0-9]{2}\|${user}\|[0-9]+(\.[0-9]+)?\|[^|]+\|[0-9]+(\.[0-9]+)?s$/d" history.txt | cat > history.txt
+            echo -ne "${RED}Are you sure you want to perform the following operation? [y/n]${RESET}"
+            read -r confirmation
+            if [[ "$confirmation" == "y" ]];then
+                sed -Ei "/^[0-9]{2}\/[0-9]{2}\/[0-9]{4}, [0-9]{2}:[0-9]{2}:[0-9]{2}\|${user}\|[0-9]+(\.[0-9]+)?\|[^|]+\|[0-9]+(\.[0-9]+)?s$/d" history.txt 
+                echo -e "${GREEN}Successfully deleted.${RESET}"
+            else 
+                echo -e "${GREEN}Deletion aborted.${RESET}"
+            fi  
         fi
 
         echo -e "${PURPLE}========================================${RESET}"
