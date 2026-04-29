@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Store PWD
+DIR = $PWD
+
 # ANSI Escape codes of various colors
 RED="\e[1;91m"
 GREEN="\e[1;92m"
@@ -241,30 +244,45 @@ elif [[ $PROMPT == "3" ]]; then
         done
 
     done
+
+# Performing Logrotation
 elif [[ $PROMPT == "4" ]]; then
+    # Check if logrotate is installed on the administrator's system; if not, prompt installation.
     if ! command -v logrotate > /dev/null 2>&1; then
         echo -e "\e[1;91mlogrotate not installed in your linux system.Please install it.\e[0m\n"
         exit 1
     else
-    echo -e "\e[1;95mRotating logs...\e[0m\n"
-    logrotate -f <<EOF
-    history.txt {
-        size 10k
-        rotate 4
-        compress
-        missingok
-        notifempty
+    # Store the absolute path of history.txt and archive directory
+    LOG_PATH="${PWD}/history.txt" 
+    ARCHIVE_DIR="${PWD}/archive"
 
-        prerotate
-            tail -n 10 history.txt > history.keep
-        endscript
+    # Create an archive directory if it isn't already there
+    mkdir -p ${ARCHIVE_DIR}
 
-        postrotate
-            cat history.keep > history.txt
-            rm history.keep
-        endscript
-    }
+    # Add logrotation logic to the config file stored in administratration directory
+    # Performs log rotation in case `history.txt` is over 10KB, compresses it to .gz file, 
+    # Stores only the last 10 logs in history.txt
+    # Stores upto 4 compressed files in archive directory
+    cat > "administration/logrotate.conf" << EOF 
+"${LOG_PATH}" {
+    size 10k
+    rotate 4
+    compress
+    missingok
+    notifempty
+    olddir ${ARCHIVE_DIR}
+    prerotate
+        tail -n 10 history.txt > history.keep
+    endscript
+
+    postrotate
+        cat history.keep > history.txt
+        rm history.keep
+    endscript
+}
 EOF
-    fi
 
+    echo -e "\e[1;95mRotating logs...\e[0m\n"
+    logrotate -f "administration/logrotate.conf" -s "administration/logrotate.state"
+    fi
 fi
