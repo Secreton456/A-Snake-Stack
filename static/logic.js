@@ -1020,7 +1020,18 @@ initHighscore();
 
 function gameLoop(timeStamp) {
   /**
-   *
+   * Main game loop function.
+   * Updates game state and renders the canvas.
+   * Called recursively using requestAnimationFrame when @var Running is true.
+   * timestamp is the time at which the function is called and is automatically passed by requestAnimationFrame.
+   * requestAnimationFrame calls this function repeatedly to create the game loop at the screen frame rate, but only when @var Running is true.
+   * requestAnimationFrame is used instead of setInterval to ensure stopping the game loop easily instead of clearing intervals and to ensure smoother animations.
+   * Updates timers every 250ms and snake movement every @var snakemovementrate ms.
+   * Refer to {@link updateTimers} and {@link SnakeMovement} for more details on the above two cases.
+   * Snake movementrate is set by the difficulty selected and is updated by the obstacles of second type. Refer to {@link PassObstaclesOfSecondType}.
+   * basemovementrate is set at the start of the game based on the difficulty selected.(Refer to {@link start})
+   * These variables ensure that snake movement and other canvas updates can happen at a different rate than snake drawing,other functions to ensure smoother animations.
+   * Checks hitwall condition  to deal with the instance of snake head colliding since the snake movement and drawing are happening at different rates, wanting the snake to stop at the wall and not go through it for a smoother experience. Refer to the hitwall condition in the code for more details.
    */
   if (Running) {
     if (timeStamp - lasttimerupdate >= 250) {
