@@ -9,6 +9,9 @@ let basemovementrate = 1000 / GAME_FRAME_RATE;
 const e = 2.718;
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
+let immunityused = false; // True when the player has used immunity once, false otherwise. Used to check for advancements.
+let poisoned = false; // True when the player is poisoned atleast once, false otherwise. Used to check for advancements.
+let advancements = [false, false, false, false, false];
 // ========================== Game Classes ============================
 
 class Food {
@@ -134,6 +137,7 @@ class RottenFlesh extends Obstacle {
      *  refer to {@link PassObstaclesOfFirstType} for how it is called
      *  Refer to @var poisontime in {@link updateTimers} for more details
      */
+    poisoned = true;
     poisontime = Math.max(poisontime, 5000); //
   }
 }
@@ -324,6 +328,17 @@ const DEATH_MESSAGES = new Map([
   ["ZERO_HEALTH", "I feel so weak, I just died of zero health!"],
 ]);
 
+function showAdvancement(text) {
+  const box = document.getElementById("advancements");
+  const msg = document.getElementById("adv-text");
+
+  msg.innerText = text;
+  box.classList.add("show");
+  setTimeout(() => {
+    box.classList.remove("show");
+  }, 2000);
+}
+
 // ========================== Game Variables ==========================
 
 let Running = false; // True when the game is being played and false in homescreen, resumescreen and endscreen
@@ -399,6 +414,9 @@ function initiate_game_variables() {
   snake_column = Math.floor(CANVAS_HEIGHT / (2 * GRID_WIDTH));
   Food_cells = [];
   Snake_cells = [{ x: snake_row, y: snake_column }];
+  poisoned = false;
+  immunityused = false;
+  advancements = [false, false, false, false, false];
 }
 
 function UpdateCanvas() {
@@ -576,6 +594,9 @@ function EatFood() {
         immuneDuration,
         FOOD_ITEMS.get(food.type).immunity,
       );
+      if (FOOD_ITEMS.get(food.type).immunity > 0 && !immunityused) {
+        immunityused = true;
+      }
       foundCell = true;
     }
   }
@@ -894,6 +915,20 @@ function start() {
   }
 }
 
+function checkadvancement() {
+  if (snakeHealth >= 60 && immunityused == false && advancements[0] == false) {
+    showAdvancement("Immunty is for the weak.");
+    advancements[0] = true;
+  }
+  if (snakeHealth >= 150 && advancements[1] == false) {
+    showAdvancement("A real Snake master!");
+    advancements[1] = true;
+  }
+  if (snakeHealth >= 100 && advancements[2] == false && poisoned == false) {
+    showAdvancement("Posion? What does it even taste like?");
+    advancements[2] = true;
+  }
+}
 function checkdeath() {
   // Triggers snake death when health reaches zero.
   if (snakeHealth <= 0) {
@@ -1069,6 +1104,7 @@ function gameLoop(timeStamp) {
     FoodSpawns();
 
     PassObstaclesOfSecondType();
+    checkadvancement();
     UpdateScoreBoard(GlobalHighscore, bestplayer);
     checkdeath();
 
