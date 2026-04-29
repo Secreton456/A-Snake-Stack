@@ -34,7 +34,8 @@ function START_MENU(){
     echo -e "${YELLOW}  [1]${WHITE}  User-specific statistics"
     echo -e "${YELLOW}  [2]${WHITE}  View sorted game history"
     echo -e "${YELLOW}  [3]${WHITE}  Delete entries"
-    echo -e "${YELLOW}  [4]${WHITE}  Perform log rotation (backup)\n"
+    echo -e "${YELLOW}  [4]${WHITE}  Perform log rotation (backup)"
+    echo -e "${YELLOW}  [5]${WHITE}  View all users\n"
 
     echo -e "${CYAN}----------------------------------------${RESET}"
     
@@ -45,14 +46,15 @@ START_MENU
 
 # Validate PROMPT
 while true;do
-    echo -ne "${BLUE}Enter your choice [1-4]: ${RESET}"
+    echo -e "${WHITE}Type 'exit' to exit the program at any point.${RESET}"
+    echo -ne "${BLUE}Enter your choice [1-5]: ${RESET}"
     read -r PROMPT
     
     # Exit the process if prompted exit.
     if [[ "$PROMPT" == "exit" ]];then
         exit 0
-    # Invalidate choices which aren't 1|2|3|4
-    elif [[ "$PROMPT" != "1" && "$PROMPT" != "2" && "$PROMPT" != "3" && "$PROMPT" != "4" ]];then
+    # Invalidate choices which aren't 1|2|3|4|5
+    elif [[ "$PROMPT" != "1" && "$PROMPT" != "2" && "$PROMPT" != "3" && "$PROMPT" != "4" && "$PROMPT" != "5" ]];then
         echo -e "${RED}Invalid choice. ${RESET}"
     else
         break
@@ -78,6 +80,7 @@ if [[ $PROMPT == "1" ]]; then
 
     # Validate PROMPT1
     while true; do
+        echo -e "${WHITE}Type 'exit' to exit the program at any point.${RESET}"
         echo -ne "${BLUE}Enter choice [1-2]: ${RESET}"
         read -r PROMPT1
         if [[ "$PROMPT1" == "exit" ]]; then
@@ -102,6 +105,7 @@ if [[ $PROMPT == "1" ]]; then
             echo -e "${YELLOW}  [2]${WHITE}  View overall statistics\n"
 
             while true; do
+                echo -e "${WHITE}Type 'exit' to exit the program at any point.${RESET}"
                 echo -ne "${BLUE}Enter choice [1-2]: ${RESET}"
                 read -r PROMPT1
 
@@ -129,6 +133,7 @@ elif [[ $PROMPT == "2" ]]; then
 
 
     while true; do
+        echo -e "${WHITE}Type 'exit' to exit the program at any point.${RESET}"
         echo -ne "${BLUE}Enter choice [1-3]: ${RESET}"
         read -r SORT_CHOICE
 
@@ -163,6 +168,7 @@ elif [[ $PROMPT == "2" ]]; then
 
 
         while true; do
+            echo -e "${WHITE}Type 'exit' to exit the program at any point.${RESET}"
             echo -ne "${BLUE}Enter choice [1-3]: ${RESET}"
             read -r SORT_CHOICE
 
@@ -189,6 +195,7 @@ elif [[ $PROMPT == "3" ]]; then
     echo -e "${PURPLE}----------------------------------------${RESET}"
 
     while true; do
+        echo -e "${WHITE}Type 'exit' to exit the program at any point.${RESET}"
         echo -ne "${BLUE}Enter your choice [1-3]: ${RESET}"
         read -r DEL
         if [[ "$DEL" == "exit" ]];then
@@ -261,6 +268,7 @@ elif [[ $PROMPT == "3" ]]; then
         echo -e "${PURPLE}----------------------------------------${RESET}"
 
         while true; do
+            echo -e "${WHITE}Type 'exit' to exit the program at any point.${RESET}"
             echo -ne "${BLUE}Enter your choice [1-3]: ${RESET}"
             read -r DEL
             if [[ "$DEL" == "exit" ]];then
@@ -314,4 +322,10 @@ EOF
     echo -e "\e[1;95mRotating logs...\e[0m\n"
     logrotate -f "administration/logrotate.conf" -s "administration/logrotate.state"
     fi
+elif [[ $PROMPT == "5" ]]; then
+    echo -e "\n${CYAN}----------------------------------------${RESET}"
+    echo -e "${PURPLE} List of All Users ${RESET}"
+    echo -e "${CYAN}----------------------------------------${RESET}\n"
+
+    awk -F "|" '{print "\033[1;91m" sprintf("%-12s",$2) "\033[0m"}' history.txt | sort | uniq | less -R
 fi
