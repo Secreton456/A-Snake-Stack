@@ -166,6 +166,30 @@ html {
   border-radius: 10px;
 }
 
+#advancements {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #2b1d14;
+  color: #ffd54f;
+  font-family: "Press Start 2P", cursive;
+  font-size: auto;
+  padding: 12px 20px;
+  border: 3px solid #5a3e2b;
+  border-radius: 6px;
+  box-shadow: 0 0 10px black;
+  transform: translateX(120%);
+  opacity: 0;
+  transition:
+    transform 0.4s ease,
+    opacity 0.4s ease;
+}
+
+#advancements.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
 #ScoreBoard {
   display: flex;
   justify-content: center;
