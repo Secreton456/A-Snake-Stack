@@ -183,17 +183,18 @@ elif [[ $PROMPT == "3" ]]; then
     echo -e "${PURPLE}========================================${RESET}\n"
 
     echo -e "${YELLOW}  [1]${WHITE}  Remove invalid / malformed entries"
-    echo -e "${YELLOW}  [2]${WHITE}  Remove entries by username\n"
+    echo -e "${YELLOW}  [2]${WHITE}  Remove entries by username"
+    echo -e "${YELLOW}  [3]${WHITE}  Remove entries by Timestamp\n"
 
     echo -e "${PURPLE}----------------------------------------${RESET}"
 
     while true; do
-        echo -ne "${BLUE}Enter your choice [1-2]: ${RESET}"
+        echo -ne "${BLUE}Enter your choice [1-3]: ${RESET}"
         read -r DEL
         if [[ "$DEL" == "exit" ]];then
             exit 0
-        elif [[ "$DEL" != 1 && "$DEL" != 2 ]]; then
-            echo -e "${RED}Invalid input. Choose 1 or 2.${RESET}"
+        elif [[ "$DEL" != 1 && "$DEL" != 2 && "$DEL" != 3 ]]; then
+            echo -e "${RED}Invalid input. Choose 1, 2, or 3.${RESET}"
         else
             break
         fi
@@ -220,6 +221,33 @@ elif [[ $PROMPT == "3" ]]; then
             else 
                 echo -e "${GREEN}Deletion aborted.${RESET}"
             fi  
+        elif [[ $DEL == "3" ]]; then
+            echo -ne "${BLUE}You are requested to enter the Start timestamp(default: from first) and the End timestamp:${RESET}"
+            echo -e $'\e[1;94m Enter the Start timestamp in format "DD/MM/YYYY, HH:MM:SS"(note theres a space after the comma)\e[0m'
+            read -p $'\e[1;94m Start Timestamp: \e[0m' start_timestamp
+            echo -e $'\e[1;94m Enter the End timestamp in format "DD/MM/YYYY, HH:MM:SS"(note theres a space after the comma)\e[0m'
+            read -p $'\e[1;94m End Timestamp: \e[0m' end_timestamp
+            start_timestamp=${start_timestamp:-"00/00/0000, 00:00:00"}
+            regex='^[0-9]{2}/[0-9]{2}/[0-9]{4}, [0-9]{2}:[0-9]{2}:[0-9]{2}$'
+            if [[ ! $start_timestamp =~ $regex ]]; then
+                echo -e "${RED}Invalid Start timestamp format. Deletion aborted.${RESET}"
+                continue
+            fi
+            ############# NOTE ##############
+            # The awk script deletebytimestamp.awk is designed to keep entries which are outside the range of start and end timestamps. Hence, the condition in the script is designed to print entries which are greater than start timestamp and lesser than end timestamp. If the entry is greater than start timestamp but also greater than end timestamp, it is not printed, effectively deleting entries in the range of start and end timestamps.
+            if [[ $end_timestamp =~ $regex ]]; then
+                echo -ne "${RED}Are you sure you want to perform the following operation? [y/n]${RESET}"
+                read -r confirmation
+                if [[ "$confirmation" == "y" ]];then
+                    awk -f administration/deletebytimestamp.awk -v start="$start_timestamp" -v end="$end_timestamp" history.txt > temp.txt && mv temp.txt history.txt
+                    echo -e "${GREEN}Successfully deleted.${RESET}"
+                else 
+                    echo -e "${GREEN}Deletion aborted.${RESET}"
+                fi
+            else
+                echo -e "${RED}Invalid End timestamp format. Deletion aborted.${RESET}"
+                continue
+            fi
         fi
 
         echo -e "${PURPLE}========================================${RESET}"
@@ -227,17 +255,18 @@ elif [[ $PROMPT == "3" ]]; then
         echo -e "${PURPLE}========================================${RESET}\n"
 
         echo -e "${YELLOW}  [1]${WHITE}  Remove invalid / malformed entries"
-        echo -e "${YELLOW}  [2]${WHITE}  Remove entries by username\n"
+        echo -e "${YELLOW}  [2]${WHITE}  Remove entries by username"
+        echo -e "${YELLOW}  [3]${WHITE}  Remove entries by Timestamp\n"
 
         echo -e "${PURPLE}----------------------------------------${RESET}"
 
         while true; do
-            echo -ne "${BLUE}Enter your choice [1-2]: ${RESET}"
+            echo -ne "${BLUE}Enter your choice [1-3]: ${RESET}"
             read -r DEL
             if [[ "$DEL" == "exit" ]];then
                 exit 0
-            elif [[ "$DEL" != 1 && "$DEL" != 2 ]]; then
-                echo -e "${RED}Invalid input. Choose 1 or 2.${RESET}"
+            elif [[ "$DEL" != 1 && "$DEL" != 2 && "$DEL" != 3 ]]; then
+                echo -e "${RED}Invalid input. Choose 1, 2, or 3.${RESET}"
             else
                 break
             fi
