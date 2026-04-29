@@ -2,7 +2,7 @@ MAIN = report
 TEX = $(MAIN).tex
 BIB = references.bib
 
-IMAGES = images/EndScreen.img images/HomeScreen.img images/Ingame.png
+IMAGES = images/EndScreen.png images/HomeScreen.png images/Ingame.png
 
 
 all: $(MAIN).pdf
