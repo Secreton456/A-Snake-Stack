@@ -6,7 +6,15 @@
 h1 {
   margin: 0;
 }
+
+#wrapped {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
 #Canvas_container {
+  grid-column: 2;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -116,6 +124,7 @@ html {
 }
 
 #rules-popup {
+  position: relative;
   display: none;
   font-family: "Press Start 2P", cursive;
   color: white;
@@ -167,6 +176,19 @@ html {
   text-shadow:
     2px 2px 0 #5a3e2b,
     0 0 8px rgba(255, 213, 79, 0.7); /* FOR SHINING EFFECT */
+}
+
+#GlobalStats {
+  grid-column: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-family: "Press Start 2P", cursive;
+  color: #ff6f00;
+  text-shadow:
+    2px 2px 0 #5a3e2b,
+    0 0 8px rgba(255, 111, 0, 0.7); /* FOR SHINING EFFECT */
 }
 
 #Difficulty {
@@ -284,7 +306,24 @@ th {
   align-items: center;
 }
 
-.scoreboard .item {
+.global {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 50px 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #e0e0e0;
+  font-family: "Press Start 2P", monospace;
+  font-size: auto;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
+  align-items: center;
+}
+
+.item {
   padding: 4px 8px;
 }
 
@@ -292,7 +331,7 @@ th {
   color: #55ffff;
 }
 
-.scoreboard .player {
+.global .player {
   color: #ffdd55;
 }
 

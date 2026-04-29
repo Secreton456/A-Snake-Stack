@@ -648,9 +648,13 @@ function UpdateScoreBoard(highscore, bestplayer) {
   <div class="scoreboard">
     <span class="item">Score: ${snakeHealth.toString().padStart(3, "0")}</span>
     <span class="item immunity">Immunity: ${(immuneDuration / 1000).toFixed(2)}s</span>
-    <span class="item">Overall HighScore: ${highscore.toString().padStart(3, "0")}</span>
-    <span class="item player">Best Player: ${bestplayer}</span>
   </div>
+`;
+  document.getElementById("GlobalStats").innerHTML = `
+    <div class="global">
+      <span class="item">Global Best: ${highscore.toString().padStart(3, "0")}</span>
+      <span class="item player">Best Player: ${bestplayer}</span>
+    </div>
 `;
 }
 
@@ -675,7 +679,7 @@ async function updateHighScore() {
     headers: { "Content-type": "application/json; charset=UTF-8" },
     body: JSON.stringify({
       highscore: GlobalHighscore,
-      username: username,
+      username: bestplayer,
     }),
   });
   const response = await postJson.json();
@@ -864,6 +868,7 @@ function start() {
    * Set display style of HTML elements of endscreen and homescreen ovaerlays to none.
    */
   document.getElementById("Canvas").style.display = "block";
+  document.getElementById("GlobalStats").style.display = "flex";
 
   inEndScreen = false;
   if (Difficulty == "HARD") {
@@ -1063,6 +1068,7 @@ function gameLoop(timeStamp) {
 function home() {
   inHomeScreen = true;
   document.getElementById("Canvas").style.setProperty("display", "none");
+  document.getElementById("GlobalStats").style.setProperty("display", "none");
   document.getElementById("username").value = "";
   document.getElementById("overlay-endscreen").style.setProperty("display", "none");
   document.getElementById("resume-screen-instructions").style.display = "none";
