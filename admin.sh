@@ -222,7 +222,7 @@ elif [[ $PROMPT == "3" ]]; then
                 echo -e "${GREEN}Deletion aborted.${RESET}"
             fi  
         elif [[ $DEL == "3" ]]; then
-            echo -ne "${BLUE}You are requested to enter the Start timestamp(default: from first) and the End timestamp:${RESET}"
+            echo -e "${BLUE}You are requested to enter the Start timestamp(default: from first) and the End timestamp.${RESET}"
             echo -e $'\e[1;94m Enter the Start timestamp in format "DD/MM/YYYY, HH:MM:SS"(note theres a space after the comma)\e[0m'
             read -p $'\e[1;94m Start Timestamp: \e[0m' start_timestamp
             echo -e $'\e[1;94m Enter the End timestamp in format "DD/MM/YYYY, HH:MM:SS"(note theres a space after the comma)\e[0m'
